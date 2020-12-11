@@ -14,6 +14,12 @@ namespace DotRun.Runtime
             Console.Write("> ");
             Console.WriteLine(text);
         }
+
+        public void ErrorLine(string text)
+        {
+            Console.Write("! ");
+            Console.WriteLine(text);
+        }
     }
 
 }

@@ -4,6 +4,7 @@
     {
         void Write(string text);
         void WriteLine(string text);
+        void ErrorLine(string text);
     }
 
 }

@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
+
     public interface INode
     {
         Task WriteFile(StepContext context, string path, Stream source);
 
-        Task ExecuteCommand(StepContext context, string proc, IEnumerable<string> args, IOutput output);
+        Task<ProcessResult> ExecuteCommand(ShellCommand cmd);
 
-        public IShell CreateShell(string name);
+        IShell CreateShell(string name);
     }
 
 }

@@ -9,6 +9,10 @@
         public void WriteLine(string text)
         {
         }
+
+        public void ErrorLine(string text)
+        {
+        }
     }
 
 }
