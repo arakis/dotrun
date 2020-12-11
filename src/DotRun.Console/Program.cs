@@ -8,7 +8,8 @@ namespace DotRun.Console
         static void Main(string[] args)
         {
             System.Console.WriteLine("Hello World!");
-            DotRunConfig.Current.Projects[0].Workflows[0].Run();
+            var r = DotRunConfig.Current.Projects[0].Workflows[0].Run().Result;
+            System.Console.WriteLine("Done");
         }
     }
 }

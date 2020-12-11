@@ -1,14 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DotRun.Runtime
 {
 
     public class WorkflowContext
     {
+        private Dictionary<string, IStepEnvironment> Environments = new Dictionary<string, IStepEnvironment>();
         public IStepEnvironment GetEnvironment(string name)
         {
-            throw new NotImplementedException();
+            if (name == null)
+                name = "local";
+
+            lock (Environments)
+            {
+                if (!Environments.TryGetValue(name, out var env))
+                {
+                    env = new LocalEnvironment();
+                    Environments.Add(name, env);
+                }
+                return env;
+            }
         }
+
     }
 
     public class StepContext

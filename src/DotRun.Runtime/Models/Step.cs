@@ -7,5 +7,6 @@
         public string Run { get; set; }
         public string WorkDirectory { get; set; }
         public string Environment { get; set; }
+        public string Shell { get; set; }
     }
 }
