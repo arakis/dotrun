@@ -14,13 +14,13 @@ namespace DotRun.Runtime
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
             var tmpScriptPath = "/tmp/script.ps1";
             await context.Node.WriteFile(context, tmpScriptPath, ms);
-            await context.Node.ExecuteCommand(new ShellCommand
+            await context.Node.ExecuteCommand(new NodeCommand
             {
-                context = context,
-                proc = "pwsh.exe",
-                args = new string[] { tmpScriptPath },
-                output = output,
-                timeout = TimeSpan.MaxValue,
+                Context = context,
+                FileName = "pwsh.exe",
+                Arguments = new string[] { tmpScriptPath },
+                Output = output,
+                Timeout = TimeSpan.MaxValue,
             });
             return new StepResult();
         }

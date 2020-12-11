@@ -9,7 +9,7 @@ namespace DotRun.Runtime
     {
         Task WriteFile(StepContext context, string path, Stream source);
 
-        Task<ProcessResult> ExecuteCommand(ShellCommand cmd);
+        Task<ProcessResult> ExecuteCommand(NodeCommand cmd);
 
         IShell CreateShell(string name);
     }

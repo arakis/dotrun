@@ -19,20 +19,20 @@ namespace DotRun.Runtime
         }
 
 
-        public async Task<ProcessResult> ExecuteCommand(ShellCommand cmd)
+        public async Task<ProcessResult> ExecuteCommand(NodeCommand cmd)
         {
             var result = new ProcessResult();
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = cmd.proc,
+                FileName = cmd.FileName,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
-            foreach (var arg in cmd.args)
+            foreach (var arg in cmd.Arguments)
                 startInfo.ArgumentList.Add(arg);
 
             var process = new Process()
@@ -51,7 +51,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.output.WriteLine(e.Data);
+                    cmd.Output.WriteLine(e.Data);
                 }
             };
 
@@ -66,7 +66,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.output.ErrorLine(e.Data);
+                    cmd.Output.ErrorLine(e.Data);
                 }
             };
 
@@ -93,13 +93,13 @@ namespace DotRun.Runtime
                 process.BeginErrorReadLine();
 
                 // Creates task to wait for process exit using timeout
-                var waitForExit = WaitForExitAsync(process, cmd.timeout);
+                var waitForExit = WaitForExitAsync(process, cmd.Timeout);
 
                 // Create task to wait for process exit and closing all output streams
                 var processTask = Task.WhenAll(waitForExit, outputCloseEvent.Task, errorCloseEvent.Task);
 
                 // Waits process completion and then checks it was not completed by timeout
-                if (await Task.WhenAny(Task.Delay(CapTimeout(cmd.timeout)), processTask) == processTask && waitForExit.Result)
+                if (await Task.WhenAny(Task.Delay(CapTimeout(cmd.Timeout)), processTask) == processTask && waitForExit.Result)
                 {
                     result.Completed = true;
                     result.ExitCode = process.ExitCode;

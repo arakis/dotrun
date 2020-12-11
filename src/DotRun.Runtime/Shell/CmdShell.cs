@@ -14,13 +14,13 @@ namespace DotRun.Runtime
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
             var tmpScriptPath = "/tmp/script.bat";
             await context.Node.WriteFile(context, tmpScriptPath, ms);
-            await context.Node.ExecuteCommand(new ShellCommand
+            await context.Node.ExecuteCommand(new NodeCommand
             {
-                context = context,
-                proc = "cmd.exe",
-                args = new string[] { "/c", tmpScriptPath },
-                output = output,
-                timeout = TimeSpan.MaxValue,
+                Context = context,
+                FileName = "cmd.exe",
+                Arguments = new string[] { "/c", tmpScriptPath },
+                Output = output,
+                Timeout = TimeSpan.MaxValue,
             });
             return new StepResult();
         }
