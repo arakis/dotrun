@@ -11,7 +11,7 @@ namespace DotRun.Runtime
     public static class StepExtensions
     {
 
-        public static Task<StepExecutionResult> Run(this Step step, StepExecutionContext context)
+        public static Task<StepResult> Run(this Step step, StepContext context)
         {
             return StepExecutor.Create(step, context).Run();
         }
@@ -22,35 +22,35 @@ namespace DotRun.Runtime
     {
 
         public Step Step { get; set; }
-        public StepExecutionContext Context { get; set; }
+        public StepContext Context { get; set; }
 
         public IStepEnvironment Environment { get; set; }
 
         public IStepShell Shell { get; set; }
 
-        public static IStepExecutor Create(Step step, StepExecutionContext context)
+        public static IStepExecutor Create(Step step, StepContext context)
         {
             var executor = new StepExecutor(step, context);
-            executor.Environment = context.ExecutionContext.GetEnvironment(step.Environment);
+            executor.Environment = context.WorkflowContext.GetEnvironment(step.Environment);
             executor.Shell = new CmdShell();
             return executor;
         }
 
-        private StepExecutor(Step step, StepExecutionContext context)
+        private StepExecutor(Step step, StepContext context)
         {
             Step = step;
             Context = context;
         }
 
-        public Task<StepExecutionResult> Run()
+        public Task<StepResult> Run()
         {
-            var result = new StepExecutionResult();
+            var result = new StepResult();
             return Task.FromResult(result);
         }
 
-        public Task<StepExecutionResult> RunInternal()
+        public Task<StepResult> RunInternal()
         {
-            var result = new StepExecutionResult();
+            var result = new StepResult();
             return Task.FromResult(result);
         }
 
@@ -63,38 +63,38 @@ namespace DotRun.Runtime
     public interface IStepExecutor
     {
         public Step Step { get; }
-        public StepExecutionContext Context { get; }
+        public StepContext Context { get; }
         public IStepEnvironment Environment { get; }
         public IStepShell Shell { get; }
         public void Abort();
-        public Task<StepExecutionResult> Run();
+        public Task<StepResult> Run();
     }
 
     public interface IStepEnvironment
     {
-        Task WriteFile(StepExecutionContext context, string path, Stream source);
+        Task WriteFile(StepContext context, string path, Stream source);
 
-        Task ExecuteCommand(StepExecutionContext context, string proc, IEnumerable<string> args);
+        Task ExecuteCommand(StepContext context, string proc, IEnumerable<string> args);
 
     }
 
     public interface IStepShell
     {
 
-        Task Execute(StepExecutionContext context);
+        Task Execute(StepContext context);
 
     }
 
     public class LocalEnvironment : IStepEnvironment
     {
-        public Task WriteFile(StepExecutionContext context, string path, Stream source)
+        public Task WriteFile(StepContext context, string path, Stream source)
         {
             using var fileStream = File.Create(path);
             source.Seek(0, SeekOrigin.Begin);
             return source.CopyToAsync(fileStream);
         }
 
-        public Task ExecuteCommand(StepExecutionContext context, string proc, IEnumerable<string> args)
+        public Task ExecuteCommand(StepContext context, string proc, IEnumerable<string> args)
         {
             Process.Start(proc, args);
             return Task.CompletedTask;
@@ -104,7 +104,7 @@ namespace DotRun.Runtime
     public class CmdShell : IStepShell
     {
 
-        public Task Execute(StepExecutionContext context)
+        public Task Execute(StepContext context)
         {
             var command = context.Step.Run;
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));

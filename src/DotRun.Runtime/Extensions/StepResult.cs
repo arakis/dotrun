@@ -1,6 +1,6 @@
 ﻿namespace DotRun.Runtime
 {
-    public class WorkflowExecutionResult
+    public class StepResult
     {
     }
 
