@@ -9,10 +9,11 @@ namespace DotRun.Runtime
     public class DotRunConfig
     {
 
-        internal static DotRunConfig Load()
-        {
-            return FromFile(DirectoryHelper.ConfigFile);
-        }
+        //internal static DotRunConfig Load()
+        //{
+
+        //    return FromFile(DirectoryHelper.ConfigFile);
+        //}
 
         public static DotRunConfig FromFile(string configFilePath)
         {
@@ -22,6 +23,12 @@ namespace DotRun.Runtime
 
         public static DotRunConfig FromFile(string configFilePath, string configDirectory)
         {
+            if (!string.IsNullOrEmpty(configFilePath))
+                configFilePath = DirectoryHelper.GetAbsoluteLocalPath(configFilePath);
+
+            if (!string.IsNullOrEmpty(configDirectory))
+                configDirectory = DirectoryHelper.GetAbsoluteLocalPath(configDirectory);
+
             string content = "";
             if (File.Exists(configFilePath))
                 content = File.ReadAllText(configFilePath);
@@ -44,16 +51,16 @@ namespace DotRun.Runtime
         public string Content { get; internal set; }
         public string ProjectsRootDirectory => ConfigDirectory;
 
-        private static DotRunConfig _Current;
-        public static DotRunConfig Current
-        {
-            get
-            {
-                if (_Current == null)
-                    _Current = DotRunConfig.Load();
-                return _Current;
-            }
-        }
+        //private static DotRunConfig _Current;
+        //public static DotRunConfig Current
+        //{
+        //    get
+        //    {
+        //        if (_Current == null)
+        //            _Current = DotRunConfig.Load();
+        //        return _Current;
+        //    }
+        //}
 
         private List<Project> _Projects;
         public List<Project> Projects
