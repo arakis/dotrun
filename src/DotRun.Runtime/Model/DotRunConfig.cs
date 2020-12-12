@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace DotRun.Runtime
 {
@@ -71,6 +72,33 @@ namespace DotRun.Runtime
             foreach (var dir in new DirectoryInfo(projectsDirectory).GetDirectories())
                 projects.Add(Project.FromFile("", dir.FullName));
             return projects;
+        }
+
+        public string SecretsFile { get; set; } = "~/dotrun.secrets.yaml";
+
+        private static List<Secret> LoadSecrets(DotRunConfig cfg)
+        {
+            if (!File.Exists(cfg.SecretsFile))
+                return new List<Secret>();
+
+            var secrets = YamlHelper.Deserialize<SecretsInfo>(File.ReadAllText(cfg.SecretsFile));
+            return secrets.Secrets;
+        }
+
+        private List<Secret> _Secrets;
+        public List<Secret> Secrets
+        {
+            get
+            {
+                if (_Secrets == null)
+                    _Secrets = LoadSecrets(this);
+                return _Secrets;
+            }
+        }
+
+        public Secret GetSecret(string name)
+        {
+            return Secrets.FirstOrDefault(s => s.Name?.ToLower() == name);
         }
 
     }

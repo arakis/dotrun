@@ -17,6 +17,27 @@ namespace DotRun.Runtime
             Context = context;
         }
 
+        public static async Task<INode> CreateNode(WorkflowContext context, NodeType nodeType)
+        {
+            INode node;
+            switch (nodeType)
+            {
+                case NodeType.Local:
+                    node = new LocalNode(context);
+                    break;
+                case NodeType.Docker:
+                    node = new DockerNode(context);
+                    break;
+                default:
+                    throw new Exception("Invalid node type");
+            }
+
+            if (!(await node.Init()))
+                throw new Exception("Error");
+
+            return node;
+        }
+
         public virtual IShell CreateShell(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -177,7 +198,7 @@ namespace DotRun.Runtime
             return ts;
         }
 
-        public virtual Task<bool> Connect()
+        public virtual Task<bool> Init()
         {
             return Task.FromResult(true);
         }

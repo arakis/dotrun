@@ -41,6 +41,8 @@ namespace DotRun.Runtime
 
         public override async Task WriteFile(StepContext context, string path, Stream source)
         {
+            //Client.Containers.ExtractArchiveToContainerAsync(ContainerID, new ContainerPathStatParameters { Path = path }, ...);
+
             var tempPath = await WriteStreamToRandomFile(source);
 
             await ExecuteLocalCommand(new NodeCommand
@@ -63,6 +65,7 @@ namespace DotRun.Runtime
         }
 
         private string ContainerName;
+        private string ContainerID;
         private int MaxConnectTime = 60 * 60 * 24;
         public string ImageName { get; private set; } = "busybox:latest";
 
@@ -75,7 +78,7 @@ namespace DotRun.Runtime
         }
 
         private DockerClient Client;
-        public override async Task<bool> Connect()
+        public override async Task<bool> Init()
         {
             Client = new DockerClientConfiguration().CreateClient();
 
@@ -94,11 +97,11 @@ namespace DotRun.Runtime
             {
                 Image = ImageName,
                 Name = ContainerName,
-                //Shell = new string[] { "/bin/sh" },
                 Cmd = new string[] { "/bin/sh", "-c", $"echo started; sleep {MaxConnectTime}" },
             });
+            ContainerID = res.ID;
 
-            await Client.Containers.StartContainerAsync(res.ID, new ContainerStartParameters());
+            await Client.Containers.StartContainerAsync(ContainerID, new ContainerStartParameters());
 
             return true;
         }

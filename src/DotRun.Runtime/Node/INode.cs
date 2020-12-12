@@ -9,7 +9,7 @@ namespace DotRun.Runtime
 
     public interface INode : IDisposable, IAsyncDisposable
     {
-        Task<bool> Connect();
+        Task<bool> Init();
 
         Task WriteFile(StepContext context, string path, Stream source);
 

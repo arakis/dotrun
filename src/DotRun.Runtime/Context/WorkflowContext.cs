@@ -1,10 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
     public class WorkflowContext
     {
+
+        public Workflow Workflow { get; internal set; }
+        public WorkflowContext(Workflow workflow)
+        {
+            Workflow = workflow;
+        }
 
         private Dictionary<string, INode> Nodes = new Dictionary<string, INode>();
         public INode GetNode(string name)
@@ -12,19 +19,22 @@ namespace DotRun.Runtime
             if (name == null)
                 name = "local";
 
-            lock (Nodes)
+            if (Workflow.NodesDict.TryGetValue(name, out var nodeModel))
             {
-                if (!Nodes.TryGetValue(name, out var node))
+                lock (Nodes)
                 {
-                    node = new DockerNode(this);
-                    Nodes.Add(name, node);
-                    var result = node.Connect().Result;
-                    if (!result)
-                        throw new Exception($"Unable to init node '{name}'");
-                }
+                    if (!Nodes.TryGetValue(name, out var node))
+                    {
+                        node = Node.CreateNode(this, nodeModel.Type).Result;
+                        if (!node.Init().Result)
+                            throw new Exception($"Unable to init node '{name}'");
+                        Nodes.Add(name, node);
+                    }
 
-                return node;
+                    return node;
+                }
             }
+            throw new Exception($"Unable to get node '{name}'");
         }
 
         public IOutput InternalOutput { get; internal set; } = new ConsoleOutput();
