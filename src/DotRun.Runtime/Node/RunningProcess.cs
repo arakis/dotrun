@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
-    public class ProcessResult
+
+    public class RunningProcess
     {
-        public bool Completed;
-        public int? ExitCode;
+        public Task<ProcessResult> CompletedTask { get; set; }
+        public Task<bool> StartedTask { get; set; }
+        public Task StartedOutput { get; set; }
+        public CancellationTokenSource CancellationTokenSource { get; set; }
     }
 
 }

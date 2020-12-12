@@ -3,8 +3,10 @@
 
 namespace DotRun.Runtime
 {
-    public class StepResult
+    public enum NodeType
     {
+        Local,
+        Docker,
     }
 
 }

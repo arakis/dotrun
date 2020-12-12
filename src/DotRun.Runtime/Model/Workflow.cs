@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// This file is part of DotRun. Web: https://github.com/Arakis/DotRun
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
@@ -6,22 +9,6 @@ using YamlDotNet.Serialization;
 
 namespace DotRun.Runtime
 {
-
-    public enum NodeType
-    {
-        Local,
-        Docker
-    }
-
-    public class NodeModel
-    {
-        public NodeType Type { get; set; }
-        public string Name { get; set; }
-        public string Image { get; set; }
-
-        [JsonProperty("image-pull-auth")]
-        public string ImagePullAuth { get; set; }
-    }
 
     public class Workflow
     {

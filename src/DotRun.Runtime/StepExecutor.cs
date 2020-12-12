@@ -1,4 +1,7 @@
-﻿using System;
+﻿// This file is part of DotRun. Web: https://github.com/Arakis/DotRun
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -69,8 +72,8 @@ namespace DotRun.Runtime
                     Arguments = new string[] { "clone", repo },
                     Env = new()
                     {
-                        { "GIT_SSH_COMMAND", "ssh -i ~/.ssh/id_rsa_dotrun.tmp" }
-                    }
+                        { "GIT_SSH_COMMAND", "ssh -i ~/.ssh/id_rsa_dotrun.tmp" },
+                    },
                 }).CompletedTask;
             }
 
