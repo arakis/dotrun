@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotRun.Runtime
@@ -9,6 +10,11 @@ namespace DotRun.Runtime
 
     public class LocalNode : Node
     {
+
+        public LocalNode(WorkflowContext context)
+            : base(context)
+        {
+        }
 
         public override async Task WriteFile(StepContext context, string path, Stream source)
         {
@@ -20,7 +26,7 @@ namespace DotRun.Runtime
             await source.CopyToAsync(fileStream);
         }
 
-        public override Task<ProcessResult> ExecuteCommand(NodeCommand cmd)
+        public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
             return ExecuteLocalCommand(cmd);
         }

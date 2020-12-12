@@ -16,12 +16,12 @@ namespace DotRun.Runtime
             await context.Node.WriteFile(context, tmpScriptPath, ms);
             await context.Node.ExecuteCommand(new NodeCommand
             {
-                Context = context,
+                Context = context.WorkflowContext,
                 FileName = "cmd.exe",
                 Arguments = new string[] { "/c", tmpScriptPath },
                 Output = output,
                 Timeout = TimeSpan.MaxValue,
-            });
+            }).CompletedTask;
             return new StepResult();
         }
 

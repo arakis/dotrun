@@ -1,12 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
     public abstract class Node : INode
     {
+
+        public WorkflowContext Context { get; private set; }
+        public IOutput InternalOutput => Context.InternalOutput;
+
+        public Node(WorkflowContext context)
+        {
+            Context = context;
+        }
+
         public virtual IShell CreateShell(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -22,10 +32,22 @@ namespace DotRun.Runtime
             throw new Exception();
         }
 
-        public abstract Task<ProcessResult> ExecuteCommand(NodeCommand cmd);
+        public abstract RunningProcess ExecuteCommand(NodeCommand cmd);
         public abstract Task WriteFile(StepContext context, string path, Stream source);
 
-        protected async Task<ProcessResult> ExecuteLocalCommand(NodeCommand cmd)
+        protected RunningProcess ExecuteLocalCommand(NodeCommand cmd)
+        {
+            var result = new RunningProcess();
+            TaskCompletionSource<bool> startedTask = new TaskCompletionSource<bool>();
+            TaskCompletionSource startedOutput = new TaskCompletionSource();
+            result.CancellationTokenSource = new CancellationTokenSource();
+            result.CompletedTask = ExecuteLocalCommandInternal(cmd, startedTask, startedOutput, result.CancellationTokenSource.Token);
+            result.StartedTask = startedTask.Task;
+            result.StartedOutput = startedOutput.Task;
+            return result;
+        }
+
+        private async Task<ProcessResult> ExecuteLocalCommandInternal(NodeCommand cmd, TaskCompletionSource<bool> startedTask, TaskCompletionSource startedOutput, CancellationToken cancellationToken)
         {
             var result = new ProcessResult();
 
@@ -50,6 +72,10 @@ namespace DotRun.Runtime
 
             process.OutputDataReceived += (s, e) =>
             {
+                lock (startedOutput)
+                    if (startedOutput.Task.IsCompleted)
+                        startedOutput.SetResult();
+
                 // The output stream has been closed i.e. the process has terminated
                 if (e.Data == null)
                 {
@@ -65,6 +91,10 @@ namespace DotRun.Runtime
 
             process.ErrorDataReceived += (s, e) =>
             {
+                lock (startedOutput)
+                    if (startedOutput.Task.IsCompleted)
+                        startedOutput.SetResult();
+
                 // The error stream has been closed i.e. the process has terminated
                 if (e.Data == null)
                 {
@@ -98,14 +128,16 @@ namespace DotRun.Runtime
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
+                startedTask.SetResult(true);
+
                 // Creates task to wait for process exit using timeout
-                var waitForExit = WaitForExitAsync(process, cmd.Timeout);
+                var waitForExit = WaitForExitAsync(process, cancellationToken);
 
                 // Create task to wait for process exit and closing all output streams
                 var processTask = Task.WhenAll(waitForExit, outputCloseEvent.Task, errorCloseEvent.Task);
 
                 // Waits process completion and then checks it was not completed by timeout
-                if (await Task.WhenAny(Task.Delay(CapTimeout(cmd.Timeout)), processTask) == processTask && waitForExit.Result)
+                if (await Task.WhenAny(Task.Delay(CapTimeout(cmd.Timeout)), processTask) == processTask && !waitForExit.IsCanceled)
                 {
                     result.Completed = true;
                     result.ExitCode = process.ExitCode;
@@ -122,22 +154,40 @@ namespace DotRun.Runtime
                     }
                 }
             }
+            else
+            {
+                startedTask.SetResult(false);
+            }
 
             return result;
         }
 
-        private static Task<bool> WaitForExitAsync(Process process, TimeSpan timeout)
+        private static Task WaitForExitAsync(Process process, CancellationToken token)
         {
-            return Task.Run(() => process.WaitForExit((int)CapTimeout(timeout).TotalMilliseconds));
+            return process.WaitForExitAsync(token);
+            //return Task.Run(() => process.WaitForExitAsync((int)CapTimeout(timeout).TotalMilliseconds));
         }
 
         private static TimeSpan CapTimeout(TimeSpan ts)
         {
-            if (ts.TotalMilliseconds > int.MaxValue)
+            if (ts.TotalMilliseconds > int.MaxValue || ts == TimeSpan.Zero)
                 return TimeSpan.FromMilliseconds(int.MaxValue);
             return ts;
         }
 
+        public virtual Task<bool> Connect()
+        {
+            return Task.FromResult(true);
+        }
+
+        public virtual void Dispose()
+        {
+        }
+
+        public virtual async ValueTask DisposeAsync()
+        {
+            await Task.Run(Dispose);
+        }
     }
 
 }

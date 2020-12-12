@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
     public class NodeCommand
     {
-        public StepContext Context;
+        public WorkflowContext Context;
         public string FileName;
         public IEnumerable<string> Arguments;
         public IOutput Output;
