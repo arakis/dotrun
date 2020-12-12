@@ -138,6 +138,7 @@
     <Rule Id="CA1815" Action="Info" />
     <Rule Id="CA1822" Action="Info" />
     <Rule Id="CA1823" Action="Info" />
+    <Rule Id="CA2007" Action="Hidden" />
     <Rule Id="CA2211" Action="None" />
     <Rule Id="CA2225" Action="Info" />
   </Rules>

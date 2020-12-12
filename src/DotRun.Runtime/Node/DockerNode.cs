@@ -153,7 +153,7 @@ namespace DotRun.Runtime
             await ExecuteCommand(new NodeCommand
             {
                 FileName = "/bin/which",
-                Arguments = new string[] { "git" },
+                Arguments = new string[] { executable },
                 Output = output,
             }).CompletedTask;
 
