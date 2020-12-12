@@ -28,6 +28,8 @@ namespace DotRun.Runtime
                     return new CmdShell();
                 case "ps":
                     return new PowerShell();
+                case "sh":
+                    return new ShShell();
             }
             throw new Exception();
         }
@@ -73,7 +75,7 @@ namespace DotRun.Runtime
             process.OutputDataReceived += (s, e) =>
             {
                 lock (startedOutput)
-                    if (startedOutput.Task.IsCompleted)
+                    if (!startedOutput.Task.IsCompleted)
                         startedOutput.SetResult();
 
                 // The output stream has been closed i.e. the process has terminated
@@ -92,7 +94,7 @@ namespace DotRun.Runtime
             process.ErrorDataReceived += (s, e) =>
             {
                 lock (startedOutput)
-                    if (startedOutput.Task.IsCompleted)
+                    if (!startedOutput.Task.IsCompleted)
                         startedOutput.SetResult();
 
                 // The error stream has been closed i.e. the process has terminated
