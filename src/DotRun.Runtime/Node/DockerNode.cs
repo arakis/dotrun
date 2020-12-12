@@ -3,6 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Docker.DotNet;
+using Docker.DotNet.Models;
+using System;
 
 namespace DotRun.Runtime
 {
@@ -60,39 +63,56 @@ namespace DotRun.Runtime
         }
 
         private string ContainerName;
-        private int MaxConnectTime;
-        public string ImageName { get; private set; } = "busybox";
+        private int MaxConnectTime = 60 * 60 * 24;
+        public string ImageName { get; private set; } = "busybox:latest";
 
-        private RunningProcess ConnectResult;
+        private class Progress : IProgress<JSONMessage>
+        {
+            public void Report(JSONMessage value)
+            {
+                Console.WriteLine(value.Status);
+            }
+        }
+
+        private DockerClient Client;
         public override async Task<bool> Connect()
         {
+            Client = new DockerClientConfiguration().CreateClient();
+
             ContainerName = "dotrun-" + StringHelper.RandomString();
-            ConnectResult = ExecuteLocalCommand(new NodeCommand
+
+            var r = await Client.Images.ListImagesAsync(new ImagesListParameters { MatchName = ImageName });
+            if (r.Count == 0)
             {
-                FileName = "docker",
-                Arguments = new string[] { "run", "-i", "--name", ContainerName, "debian:buster-slim", "/bin/sh", "-c", $"echo started; sleep {MaxConnectTime}" },
-                Output = InternalOutput,
+                await Client.Images.CreateImageAsync(new ImagesCreateParameters
+                {
+                    FromImage = ImageName,
+                }, null, new Progress());
+            }
+
+            var res = await Client.Containers.CreateContainerAsync(new CreateContainerParameters
+            {
+                Image = ImageName,
+                Name = ContainerName,
+                //Shell = new string[] { "/bin/sh" },
+                Cmd = new string[] { "/bin/sh", "-c", $"echo started; sleep {MaxConnectTime}" },
             });
 
-            var task = await Task.WhenAny(ConnectResult.CompletedTask, ConnectResult.StartedOutput);
-            if (task == ConnectResult.CompletedTask)
-                return ConnectResult.CompletedTask.Result.Completed;
-
-            InternalOutput.WriteLine("Created Container " + ContainerName);
+            await Client.Containers.StartContainerAsync(res.ID, new ContainerStartParameters());
 
             return true;
         }
 
         public override void Dispose()
         {
-            ConnectResult.CancellationTokenSource.Cancel();
-            ConnectResult.CompletedTask.Wait();
-            ExecuteLocalCommand(new NodeCommand
-            {
-                FileName = "docker",
-                Arguments = new string[] { "rm", "-f", ContainerName },
-                Output = InternalOutput,
-            }).CompletedTask.Wait();
+            //ConnectResult.CancellationTokenSource.Cancel();
+            //ConnectResult.CompletedTask.Wait();
+            //ExecuteLocalCommand(new NodeCommand
+            //{
+            //    FileName = "docker",
+            //    Arguments = new string[] { "rm", "-f", ContainerName },
+            //    Output = InternalOutput,
+            //}).CompletedTask.Wait();
         }
 
     }
