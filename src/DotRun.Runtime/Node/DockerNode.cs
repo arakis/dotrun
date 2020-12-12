@@ -29,20 +29,21 @@ namespace DotRun.Runtime
         }
 
         private RunningProcess ConnectResult;
-        public override Task<bool> Connect()
+        public override async Task<bool> Connect()
         {
             var result = ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
-                Arguments = new string[] { "run", "-i", "busybox", "/bin/sh" },
+                Arguments = new string[] { "run", "-i", "busybox", "/bin/sh", "-c", "echo started" },
                 Output = InternalOutput,
             });
 
-            //var task = await Task.WhenAny(result.CompletedTask, result.StartedOutput);
-            //if (task == result.CompletedTask)
-            //    return result.CompletedTask.Result.Completed;
+            var task = await Task.WhenAny(result.CompletedTask, result.StartedOutput);
+            if (task == result.CompletedTask)
+                return result.CompletedTask.Result.Completed;
 
-            return result.StartedTask;
+            //return result.StartedTask;
+            return true;
         }
 
         public override void Dispose()
