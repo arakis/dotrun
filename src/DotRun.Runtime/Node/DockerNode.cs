@@ -53,13 +53,15 @@ namespace DotRun.Runtime
             return ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
-                Arguments = new string[] {"exec", "-i", ContainerName, "/bin/sh", "-c",$"{cmd.FileName} -c {string.Join(" ", cmd.Arguments)}"
+                Arguments = new string[] {"exec", "-i", ContainerName, "/bin/sh", "-c", $"{cmd.FileName} -c {string.Join(" ", cmd.Arguments)}"
                 },
                 Output = InternalOutput,
             });
         }
 
         private string ContainerName;
+        private int MaxConnectTime;
+        public string ImageName { get; private set; } = "busybox";
 
         private RunningProcess ConnectResult;
         public override async Task<bool> Connect()
@@ -68,7 +70,7 @@ namespace DotRun.Runtime
             ConnectResult = ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
-                Arguments = new string[] { "run", "-i", "--name", ContainerName, "busybox", "/bin/sh", "-c", "echo started; sleep infinity" },
+                Arguments = new string[] { "run", "-i", "--name", ContainerName, "debian:buster-slim", "/bin/sh", "-c", $"echo started; sleep {MaxConnectTime}" },
                 Output = InternalOutput,
             });
 
