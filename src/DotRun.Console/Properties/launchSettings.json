@@ -1,7 +1,8 @@
 {
   "profiles": {
     "DotRun.Console": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--config-file ~/dotrun.config/config.yaml"
     }
   }
 }

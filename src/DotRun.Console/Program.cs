@@ -11,11 +11,17 @@ namespace DotRun.Console
         {
             System.Console.WriteLine("Init DotRun");
 
-            var cfgFile = "~/dotrun.config/config.yaml";
+            string cfgFile = null;
 
             var idx = Array.IndexOf(args, "--config-file");
-            if (idx > 0 && idx < args.Length)
+            if (idx > -1 && idx + 1 < args.Length)
                 cfgFile = args[idx + 1];
+
+            if (cfgFile == null)
+            {
+                System.Console.WriteLine("Please specify --config-file");
+                return;
+            }
 
             var cfg = DotRunConfig.FromFile(cfgFile);
 
