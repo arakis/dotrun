@@ -28,6 +28,7 @@ namespace DotRun.Runtime
                 Content = content,
                 Name = Path.GetFileName(projectConfigDirectory),
             };
+
             return cfg;
         }
 

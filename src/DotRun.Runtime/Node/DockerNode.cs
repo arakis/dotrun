@@ -6,15 +6,18 @@ using Microsoft.Extensions.Logging;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using System;
+using System.Collections.Generic;
 
 namespace DotRun.Runtime
 {
     public class DockerNode : Node
     {
 
-        public DockerNode(WorkflowContext context)
-            : base(context)
+        public DockerNode(WorkflowContext context, NodeModel model)
+            : base(context, model)
         {
+            if (!string.IsNullOrEmpty(Model.Image))
+                ImageName = Model.Image;
         }
 
         public override IShell CreateShell(string name)
@@ -45,6 +48,11 @@ namespace DotRun.Runtime
 
             var tempPath = await WriteStreamToRandomFile(source);
 
+            if (path.StartsWith("~"))
+                path = (await GetHomeDir()) + path.Substring(1);
+
+            InternalOutput.WriteLine("Writing file " + path);
+
             await ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
@@ -55,19 +63,34 @@ namespace DotRun.Runtime
 
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
+
+            var args = new List<string>();
+            args.Add("exec");
+            args.Add("-i");
+
+            foreach (var env in cmd.Env)
+            {
+                args.Add("-e");
+                args.Add(env.Key + "=" + env.Value);
+            }
+
+            args.Add(ContainerName);
+            args.Add("/bin/sh");
+            args.Add("-c");
+            args.Add($"{cmd.FileName} {string.Join(" ", cmd.Arguments)}");
+
             return ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
-                Arguments = new string[] {"exec", "-i", ContainerName, "/bin/sh", "-c", $"{cmd.FileName} -c {string.Join(" ", cmd.Arguments)}"
-                },
-                Output = InternalOutput,
+                Arguments = args,
+                Output = cmd.Output ?? InternalOutput,
             });
         }
 
         private string ContainerName;
         private string ContainerID;
         private int MaxConnectTime = 60 * 60 * 24;
-        public string ImageName { get; private set; } = "busybox:latest";
+        public string ImageName { get; internal set; } = "busybox:latest";
 
         private class Progress : IProgress<JSONMessage>
         {
@@ -116,6 +139,34 @@ namespace DotRun.Runtime
             //    Arguments = new string[] { "rm", "-f", ContainerName },
             //    Output = InternalOutput,
             //}).CompletedTask.Wait();
+        }
+
+        public override async Task<string> FindExecutablePath(string executable)
+        {
+            var output = new MemoryOutput();
+
+            await ExecuteCommand(new NodeCommand
+            {
+                FileName = "/bin/which",
+                Arguments = new string[] { "git" },
+                Output = output,
+            }).CompletedTask;
+
+            return output.Lines.FirstOrDefault();
+        }
+
+        public override async Task<string> GetHomeDir()
+        {
+            var output = new MemoryOutput();
+
+            await ExecuteCommand(new NodeCommand
+            {
+                FileName = "/bin/sh",
+                Arguments = new string[] { "-c", "'cd ~ && pwd'" },
+                Output = output,
+            }).CompletedTask;
+
+            return output.Lines.FirstOrDefault();
         }
 
     }

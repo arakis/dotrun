@@ -11,8 +11,8 @@ namespace DotRun.Runtime
     public class LocalNode : Node
     {
 
-        public LocalNode(WorkflowContext context)
-            : base(context)
+        public LocalNode(WorkflowContext context, NodeModel model)
+            : base(context, model)
         {
         }
 
@@ -31,6 +31,15 @@ namespace DotRun.Runtime
             return ExecuteLocalCommand(cmd);
         }
 
+        public override Task<string> FindExecutablePath(string executable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<string> GetHomeDir()
+        {
+            return Task.FromResult(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        }
     }
 
 }

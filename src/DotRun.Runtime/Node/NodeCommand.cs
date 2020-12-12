@@ -10,6 +10,7 @@ namespace DotRun.Runtime
         public WorkflowContext Context;
         public string FileName;
         public IEnumerable<string> Arguments;
+        public Dictionary<string, string> Env = new Dictionary<string, string>();
         public IOutput Output;
         public string WorkDirectory;
         public TimeSpan Timeout;

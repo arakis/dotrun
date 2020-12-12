@@ -14,6 +14,8 @@ namespace DotRun.Runtime
         Task WriteFile(StepContext context, string path, Stream source);
 
         RunningProcess ExecuteCommand(NodeCommand cmd);
+        Task<string> FindExecutablePath(string executable);
+        Task<string> GetHomeDir();
 
         IShell CreateShell(string name);
     }

@@ -11,22 +11,24 @@ namespace DotRun.Runtime
 
         public WorkflowContext Context { get; private set; }
         public IOutput InternalOutput => Context.InternalOutput;
+        public NodeModel Model { get; private set; }
 
-        public Node(WorkflowContext context)
+        public Node(WorkflowContext context, NodeModel model)
         {
             Context = context;
+            Model = model;
         }
 
-        public static async Task<INode> CreateNode(WorkflowContext context, NodeType nodeType)
+        public static async Task<INode> CreateNode(WorkflowContext context, NodeModel model)
         {
             INode node;
-            switch (nodeType)
+            switch (model.Type)
             {
                 case NodeType.Local:
-                    node = new LocalNode(context);
+                    node = new LocalNode(context, model);
                     break;
                 case NodeType.Docker:
-                    node = new DockerNode(context);
+                    node = new DockerNode(context, model);
                     break;
                 default:
                     throw new Exception("Invalid node type");
@@ -211,6 +213,9 @@ namespace DotRun.Runtime
         {
             await Task.Run(Dispose);
         }
+
+        public abstract Task<string> FindExecutablePath(string executable);
+        public abstract Task<string> GetHomeDir();
     }
 
 }
