@@ -25,7 +25,17 @@ namespace DotRun.Console
 
             var cfg = DotRunConfig.FromFile(cfgFile);
 
-            await cfg.Projects[0].Workflows[0].Run();
+            string cfgProject = null;
+            idx = Array.IndexOf(args, "--project");
+            if (idx > -1 && idx + 1 < args.Length)
+                cfgProject = args[idx + 1];
+
+            string cfgWorkflow = null;
+            idx = Array.IndexOf(args, "--workflow");
+            if (idx > -1 && idx + 1 < args.Length)
+                cfgWorkflow = args[idx + 1];
+
+            await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run();
             System.Console.WriteLine("Done");
         }
     }

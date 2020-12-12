@@ -3,6 +3,7 @@ using System.IO;
 
 namespace DotRun.Runtime
 {
+
     public class Project
     {
 
@@ -25,6 +26,7 @@ namespace DotRun.Runtime
                 ProjectDirectory = new DirectoryInfo(projectConfigDirectory).FullName,
                 ProjectFile = projectConfigFilePath,
                 Content = content,
+                Name = Path.GetFileName(projectConfigDirectory),
             };
             return cfg;
         }
@@ -34,9 +36,10 @@ namespace DotRun.Runtime
         public string ProjectDirectory { get; init; }
         public string ProjectFile { get; init; }
         public string Content { get; init; }
+        public string Name { get; init; }
 
-        private List<Workflow> _Workflows;
-        public List<Workflow> Workflows
+        private WorkflowCollection _Workflows;
+        public WorkflowCollection Workflows
         {
             get
             {
@@ -46,9 +49,9 @@ namespace DotRun.Runtime
             }
         }
 
-        private static List<Workflow> LoadWorkflows(Project project)
+        private static WorkflowCollection LoadWorkflows(Project project)
         {
-            var workflows = new List<Workflow>();
+            var workflows = new WorkflowCollection();
 
             foreach (var file in new DirectoryInfo(project.ProjectDirectory).GetFiles())
             {

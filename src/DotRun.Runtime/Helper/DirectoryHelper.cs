@@ -7,17 +7,6 @@ namespace DotRun.Runtime
     public static class DirectoryHelper
     {
 
-        //public static string ConfigRootDirectory
-        //{
-        //    get
-        //    {
-        //        return "/tmp/dotrun.config"; //TODO: Temp
-        //    }
-        //}
-
-        //public static string ConfigFile
-        //    => Path.Combine(ConfigRootDirectory, "config.yaml");
-
         public static string GetAbsoluteLocalPath(string path)
         {
             if (string.IsNullOrEmpty(path) || path == "." || path == "./" || path == "./")

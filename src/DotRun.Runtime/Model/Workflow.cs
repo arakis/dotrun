@@ -54,7 +54,7 @@ namespace DotRun.Runtime
         }
 
         [JsonProperty("nodes")]
-        internal Dictionary<string, NodeModel> NodesDict { get; set; }
+        internal Dictionary<string, NodeModel> NodesDict { get; set; } = new Dictionary<string, NodeModel>();
 
         [JsonProperty("jobs")]
         internal Dictionary<string, Job> JobsDict { get; set; }
@@ -62,6 +62,7 @@ namespace DotRun.Runtime
         [JsonProperty]
         internal string Kind { get; set; }
         internal string WorkflowFilePath { get; set; }
+        public string Name { get; set; }
 
         public static Workflow FromFile(Project project, string workflowFilePath)
         {
@@ -78,9 +79,14 @@ namespace DotRun.Runtime
 
             wf.Project = project;
             wf.WorkflowFilePath = workflowFilePath;
+            if (string.IsNullOrEmpty(wf.Name))
+                wf.Name = Path.GetFileNameWithoutExtension(workflowFilePath);
 
             foreach (var entry in wf.JobsDict)
                 entry.Value.Name = entry.Key;
+
+            if (!wf.NodesDict.ContainsKey("local"))
+                wf.NodesDict.Add("local", new NodeModel { Type = NodeType.Local });
 
             foreach (var entry in wf.NodesDict)
                 entry.Value.Name = entry.Key;

@@ -51,19 +51,8 @@ namespace DotRun.Runtime
         public string Content { get; internal set; }
         public string ProjectsRootDirectory => ConfigDirectory;
 
-        //private static DotRunConfig _Current;
-        //public static DotRunConfig Current
-        //{
-        //    get
-        //    {
-        //        if (_Current == null)
-        //            _Current = DotRunConfig.Load();
-        //        return _Current;
-        //    }
-        //}
-
-        private List<Project> _Projects;
-        public List<Project> Projects
+        private ProjectsCollection _Projects;
+        public ProjectsCollection Projects
         {
             get
             {
@@ -73,9 +62,9 @@ namespace DotRun.Runtime
             }
         }
 
-        private static List<Project> LoadProjects(DotRunConfig cfg, string projectsDirectory)
+        private static ProjectsCollection LoadProjects(DotRunConfig cfg, string projectsDirectory)
         {
-            var projects = new List<Project>();
+            var projects = new ProjectsCollection();
             foreach (var dir in new DirectoryInfo(projectsDirectory).GetDirectories())
                 projects.Add(Project.FromFile("", dir.FullName));
             return projects;
