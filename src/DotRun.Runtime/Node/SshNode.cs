@@ -190,6 +190,7 @@ namespace DotRun.Runtime
             var procResult = new ProcessResult
             {
                 ExitCode = command.ExitStatus,
+                Completed = true,
             };
 
             return new RunningProcess
