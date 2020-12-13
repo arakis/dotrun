@@ -20,6 +20,8 @@ namespace DotRun.Runtime
         {
         }
 
+        public override PlatformType PlatformType => PlatformType.Unix;
+
         public override async Task<string> FindExecutablePath(string executable)
         {
             var output = new MemoryOutput();

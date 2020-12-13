@@ -46,11 +46,10 @@ namespace DotRun.Runtime
 
         private class ReceivedHandler : IDisposable
         {
-            private readonly AutoResetEvent _signal;
-            private readonly StringBuilder _buffer = new StringBuilder();
-            public ReceivedHandler()
+            protected IOutput Output;
+            public ReceivedHandler(IOutput output)
             {
-                _signal = new AutoResetEvent(false);
+                Output = output;
             }
 
             public void OnReceive(object sender, EventArgs e)
@@ -58,48 +57,21 @@ namespace DotRun.Runtime
                 var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
                 var rawData = (byte[])dataProp.GetValue(e);
                 var data = Encoding.ASCII.GetString(rawData);
-                lock (_buffer)
-                {
-                    // append to buffer for reader to consume
-                    _buffer.Append(data);
-                }
-
-                // notify reader
-                try
-                {
-                    Signal.Set();
-                }
-                catch // may get a WaitHandle closed exception
-                {
-                }
-            }
-
-            public AutoResetEvent Signal => _signal;
-
-            public string ReadLine()
-            {
-                lock (_buffer)
-                {
-                    // cleanup buffer
-                    var result = _buffer.ToString();
-                    _buffer.Clear();
-                    return result;
-                }
+                Output.WriteLine(data);
             }
 
             public void Dispose()
             {
-                _signal.Dispose();
             }
+
         }
 
         private class ExtendedReceivedHandler : IDisposable
         {
-            private readonly AutoResetEvent _signal;
-            private readonly StringBuilder _buffer = new StringBuilder();
-            public ExtendedReceivedHandler()
+            protected IOutput Output;
+            public ExtendedReceivedHandler(IOutput output)
             {
-                _signal = new AutoResetEvent(false);
+                Output = output;
             }
 
             public void OnReceive(object sender, EventArgs e)
@@ -113,45 +85,18 @@ namespace DotRun.Runtime
                 if (rawDataTypeCode == 1)
                 {
                     var data = Encoding.ASCII.GetString(rawData);
-                    lock (_buffer)
-                    {
-                        // append to buffer for reader to consume
-                        _buffer.Append(data);
-                    }
-                }
-
-                // notify reader
-                try
-                {
-                    Signal.Set();
-                }
-                catch // may get a WaitHandle closed exception
-                {
+                    Output.ErrorLine(data);
                 }
             }
-
-            public AutoResetEvent Signal => _signal;
-
-            public string ReadLine()
-            {
-                lock (_buffer)
-                {
-                    // cleanup buffer
-                    var result = _buffer.ToString();
-                    _buffer.Clear();
-                    return result;
-                }
-            }
-
             public void Dispose()
             {
-                _signal.Dispose();
             }
+
+
         }
 
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
-
             using var command = SshClient.CreateCommand($"{cmd.FileName} {string.Join(" ", cmd.Arguments)}");
 
             // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream
@@ -161,31 +106,14 @@ namespace DotRun.Runtime
             var receivedEvent = channel.GetType().GetEvent("DataReceived", BindingFlags.Instance | BindingFlags.Public);
             var extendedDataEvent = channel.GetType().GetEvent("ExtendedDataReceived", BindingFlags.Instance | BindingFlags.Public);
 
-            using var handler = new ReceivedHandler();
-            using var handler2 = new ExtendedReceivedHandler();
+            using var handler = new ReceivedHandler(cmd.Output);
+            using var handler2 = new ExtendedReceivedHandler(cmd.Output);
+
             // add event handler here
             receivedEvent.AddEventHandler(channel, Delegate.CreateDelegate(receivedEvent.EventHandlerType, handler, handler.GetType().GetMethod("OnReceive")));
             extendedDataEvent.AddEventHandler(channel, Delegate.CreateDelegate(extendedDataEvent.EventHandlerType, handler2, handler2.GetType().GetMethod("OnReceive")));
 
-            while (true)
-            {
-                // wait on both command completion and our custom wait handle. This is blocking call
-                var t = WaitHandle.WaitAny(new[] { result.AsyncWaitHandle, handler.Signal, handler2.Signal });
-                // if done - break
-                if (result.IsCompleted)
-                    break;
-
-                if (t == 1)
-                {
-                    var line = handler.ReadLine();
-                    cmd.Output.WriteLine(line);
-                }
-                else
-                {
-                    var line = handler2.ReadLine();
-                    cmd.Output.ErrorLine(line);
-                }
-            }
+            result.AsyncWaitHandle.WaitOne();
 
             var procResult = new ProcessResult
             {

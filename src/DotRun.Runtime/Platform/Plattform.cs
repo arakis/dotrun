@@ -17,6 +17,7 @@ namespace DotRun.Runtime
     public abstract class Platform : IPlatform
     {
         public INode Node { get; private set; }
+        public abstract PlatformType PlatformType { get; }
 
         public Platform(INode node)
         {
