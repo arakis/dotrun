@@ -17,6 +17,7 @@ namespace DotRun.Runtime
         public LocalNode(WorkflowContext context, NodeModel model)
             : base(context, model)
         {
+            Platform = new WindowsPlatform(this);
         }
 
         public override async Task WriteFile(StepContext context, string path, Stream source)
@@ -43,6 +44,12 @@ namespace DotRun.Runtime
         {
             return Task.FromResult(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }
+
+        public override Task<string> GetUserName()
+        {
+            return Task.FromResult(Environment.UserName);
+        }
+
     }
 
 }

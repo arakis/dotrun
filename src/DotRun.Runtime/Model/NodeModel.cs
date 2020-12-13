@@ -9,6 +9,9 @@ namespace DotRun.Runtime
     {
         public NodeType Type { get; set; }
         public string Name { get; set; }
+        public string Host { get; set; }
+        public string Username { get; set; }
+        public string KeyFile { get; set; }
         public string Image { get; set; }
 
         [JsonProperty("image-pull-auth")]

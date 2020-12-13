@@ -12,6 +12,8 @@ namespace DotRun.Runtime
     public abstract class Node : INode
     {
 
+        public IPlatform Platform { get; protected set; }
+
         public WorkflowContext Context { get; private set; }
         public IOutput InternalOutput => Context.InternalOutput;
         public NodeModel Model { get; private set; }
@@ -32,6 +34,9 @@ namespace DotRun.Runtime
                     break;
                 case NodeType.Docker:
                     node = new DockerNode(context, model);
+                    break;
+                case NodeType.Ssh:
+                    node = new SshNode(context, model);
                     break;
                 default:
                     throw new Exception("Invalid node type");
@@ -224,8 +229,20 @@ namespace DotRun.Runtime
             await Task.Run(Dispose);
         }
 
-        public abstract Task<string> FindExecutablePath(string executable);
-        public abstract Task<string> GetHomeDir();
+        public virtual Task<string> FindExecutablePath(string executable)
+        {
+            return Platform.FindExecutablePath(executable);
+        }
+
+        public virtual Task<string> GetHomeDir()
+        {
+            return Platform.GetHomeDir();
+        }
+
+        public virtual Task<string> GetUserName()
+        {
+            return Platform.GetUsername();
+        }
     }
 
 }

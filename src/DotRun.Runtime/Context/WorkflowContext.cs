@@ -29,8 +29,6 @@ namespace DotRun.Runtime
                     if (!Nodes.TryGetValue(name, out var node))
                     {
                         node = Node.CreateNode(this, nodeModel).Result;
-                        if (!node.Init().Result)
-                            throw new Exception($"Unable to init node '{name}'");
                         Nodes.Add(name, node);
                     }
 

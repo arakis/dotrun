@@ -52,48 +52,12 @@ namespace DotRun.Runtime
 
         private async Task RunUses()
         {
-            if (Step.Uses == "dotrun/checkout")
+            var use = UseAction.Create(Context);
+            if (use != null)
             {
-                var updated = false;
-                var gitPath = await Node.FindExecutablePath("git");
-                if (string.IsNullOrEmpty(gitPath))
-                {
-                    if (!updated)
-                    {
-                        await Node.ExecuteCommand(new NodeCommand { FileName = "apt-get", Arguments = new string[] { "update" } }).CompletedTask;
-                        updated = true;
-                    }
-                    await Node.ExecuteCommand(new NodeCommand { FileName = "apt-get", Arguments = new string[] { "install", "-y", "git" } }).CompletedTask;
-                }
-
-                var sshPath = await Node.FindExecutablePath("ssh");
-                if (string.IsNullOrEmpty(sshPath))
-                {
-                    if (!updated)
-                    {
-                        await Node.ExecuteCommand(new NodeCommand { FileName = "apt-get", Arguments = new string[] { "update" } }).CompletedTask;
-                        updated = true;
-                    }
-                    await Node.ExecuteCommand(new NodeCommand { FileName = "apt-get", Arguments = new string[] { "install", "-y", "openssh-client" } }).CompletedTask;
-                }
-
-                var repo = (string)Step.With["repository"];
-                await Node.ExecuteCommand(new NodeCommand { FileName = "mkdir", Arguments = new string[] { "-p", "~/.ssh" } }).CompletedTask;
-                using var stream = File.Open(DirectoryHelper.GetAbsoluteLocalPath("~/.ssh/id_rsa"), FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                await Node.WriteFile(Context, "~/.ssh/id_rsa_dotrun.tmp", stream);
-                await Node.ExecuteCommand(new NodeCommand { FileName = "/bin/sh", Arguments = new string[] { "-c", "'chmod 600 ~/.ssh/id_rsa_dotrun.tmp'" } }).CompletedTask;
-                await Node.ExecuteCommand(new NodeCommand
-                {
-                    FileName = "git",
-                    Arguments = new string[] { "clone", repo },
-                    Env = new()
-                    {
-                        { "GIT_SSH_COMMAND", "ssh -i ~/.ssh/id_rsa_dotrun.tmp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" },
-                    },
-                }).CompletedTask;
-
-                System.Console.WriteLine("Step.Uses done: " + Step.Uses);
+                Console.WriteLine("Step.Uses start: " + Step.Uses);
+                await use.Run();
+                Console.WriteLine("Step.Uses done: " + Step.Uses);
             }
 
             return;

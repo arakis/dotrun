@@ -21,6 +21,8 @@ namespace DotRun.Runtime
         {
             if (!string.IsNullOrEmpty(Model.Image))
                 ImageName = Model.Image;
+
+            Platform = new UnixPlatform(this);
         }
 
         public override IShell CreateShell(string name)
@@ -31,25 +33,11 @@ namespace DotRun.Runtime
             return base.CreateShell(name);
         }
 
-        private static async Task<string> WriteStreamToRandomFile(Stream source)
-        {
-            var randomPath = Path.GetRandomFileName();
-
-            if (File.Exists(randomPath))
-                File.Delete(randomPath);
-
-            using var fileStream = File.Create(randomPath);
-            source.Seek(0, SeekOrigin.Begin);
-            await source.CopyToAsync(fileStream);
-
-            return randomPath;
-        }
-
         public override async Task WriteFile(StepContext context, string path, Stream source)
         {
             //Client.Containers.ExtractArchiveToContainerAsync(ContainerID, new ContainerPathStatParameters { Path = path }, ...);
 
-            var tempPath = await WriteStreamToRandomFile(source);
+            using var tempFile = await DirectoryHelper.WriteStreamToTempFile(source);
 
             if (path.StartsWith("~"))
                 path = (await GetHomeDir()) + path.Substring(1);
@@ -59,7 +47,7 @@ namespace DotRun.Runtime
             await ExecuteLocalCommand(new NodeCommand
             {
                 FileName = "docker",
-                Arguments = new string[] { "cp", tempPath, ContainerName + ":" + path },
+                Arguments = new string[] { "cp", tempFile.FilePath, ContainerName + ":" + path },
                 Output = InternalOutput,
             }).CompletedTask;
         }
@@ -136,42 +124,9 @@ namespace DotRun.Runtime
 
         public override void Dispose()
         {
-            //ConnectResult.CancellationTokenSource.Cancel();
-            //ConnectResult.CompletedTask.Wait();
-            //ExecuteLocalCommand(new NodeCommand
-            //{
-            //    FileName = "docker",
-            //    Arguments = new string[] { "rm", "-f", ContainerName },
-            //    Output = InternalOutput,
-            //}).CompletedTask.Wait();
-        }
-
-        public override async Task<string> FindExecutablePath(string executable)
-        {
-            var output = new MemoryOutput();
-
-            await ExecuteCommand(new NodeCommand
-            {
-                FileName = "/bin/which",
-                Arguments = new string[] { executable },
-                Output = output,
-            }).CompletedTask;
-
-            return output.Lines.FirstOrDefault();
-        }
-
-        public override async Task<string> GetHomeDir()
-        {
-            var output = new MemoryOutput();
-
-            await ExecuteCommand(new NodeCommand
-            {
-                FileName = "/bin/sh",
-                Arguments = new string[] { "-c", "'cd ~ && pwd'" },
-                Output = output,
-            }).CompletedTask;
-
-            return output.Lines.FirstOrDefault();
+            Client?.Dispose();
+            Client = null;
+            base.Dispose();
         }
 
     }

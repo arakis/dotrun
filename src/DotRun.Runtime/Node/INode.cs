@@ -12,6 +12,7 @@ namespace DotRun.Runtime
 
     public interface INode : IDisposable, IAsyncDisposable
     {
+        IPlatform Platform { get; }
         Task<bool> Init();
 
         Task WriteFile(StepContext context, string path, Stream source);
@@ -19,6 +20,7 @@ namespace DotRun.Runtime
         RunningProcess ExecuteCommand(NodeCommand cmd);
         Task<string> FindExecutablePath(string executable);
         Task<string> GetHomeDir();
+        Task<string> GetUserName();
 
         IShell CreateShell(string name);
     }

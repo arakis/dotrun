@@ -11,6 +11,15 @@ namespace DotRun.Runtime
     public class PowerShell : IShell
     {
 
+        private async Task<string> DetectPowerShell(StepContext context)
+        {
+            var pwsh = await context.Node.FindExecutablePath("pwsh");
+            if (pwsh.IsSet())
+                return "pwsh.exe";
+            else
+                return "powershell.exe";
+        }
+
         public async Task<StepResult> Execute(StepContext context, IOutput output)
         {
             var command = context.Step.Run;
@@ -20,7 +29,7 @@ namespace DotRun.Runtime
             await context.Node.ExecuteCommand(new NodeCommand
             {
                 Context = context.WorkflowContext,
-                FileName = "pwsh.exe",
+                FileName = await DetectPowerShell(context),
                 Arguments = new string[] { tmpScriptPath },
                 Output = output,
                 Timeout = TimeSpan.MaxValue,

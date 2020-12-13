@@ -3,12 +3,27 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace DotRun.Runtime
 {
 
     public static class DirectoryHelper
     {
+
+        internal static async Task<TempFile> WriteStreamToTempFile(Stream source)
+        {
+            var randomPath = Path.GetRandomFileName();
+
+            if (File.Exists(randomPath))
+                File.Delete(randomPath);
+
+            using var fileStream = File.Create(randomPath);
+            source.Seek(0, SeekOrigin.Begin);
+            await source.CopyToAsync(fileStream);
+
+            return new TempFile { FilePath = randomPath };
+        }
 
         public static string GetAbsoluteLocalPath(string path)
         {

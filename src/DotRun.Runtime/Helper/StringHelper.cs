@@ -18,6 +18,10 @@ namespace DotRun.Runtime
         {
             return Random.Next(int.MaxValue).ToString("X8");
         }
+
+        public static bool IsSet(this string str)
+            => !string.IsNullOrEmpty(str);
+
     }
 
 }
