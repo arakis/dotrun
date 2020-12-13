@@ -44,6 +44,37 @@ namespace DotRun.Runtime
         {
             throw new NotImplementedException();
         }
+
+        public override async Task Delete(string path)
+        {
+            if (!path.IsSet())
+                return;
+
+            path = path.Replace("/", "\\");
+
+            // avoid accident
+            if (path == "\\")
+                return;
+
+            var output = new MemoryOutput();
+
+            await Node.ExecuteCommand(new NodeCommand
+            {
+                FileName = "cmd.exe",
+                Arguments = new string[] { "/c", $"del /s /q {path}" },
+                Output = output,
+            }).CompletedTask;
+
+            await Node.ExecuteCommand(new NodeCommand
+            {
+                FileName = "cmd.exe",
+                Arguments = new string[] { "/c", $"rmdir /s /q {path}" },
+                Output = output,
+            }).CompletedTask;
+
+            return;
+        }
+
     }
 
 }

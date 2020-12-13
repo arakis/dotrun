@@ -97,7 +97,9 @@ namespace DotRun.Runtime
 
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
-            using var command = SshClient.CreateCommand($"{cmd.FileName} {string.Join(" ", cmd.Arguments)}");
+            var cmdLine = $"{cmd.FileName} {string.Join(" ", cmd.Arguments)}";
+            Console.WriteLine("SSH: " + cmdLine);
+            using var command = SshClient.CreateCommand(cmdLine);
 
             // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream
             var result = command.BeginExecute();
@@ -162,6 +164,10 @@ namespace DotRun.Runtime
             SshClient = null;
         }
 
+        public override Task Delete(StepContext context, string path)
+        {
+            return Platform.Delete(path);
+        }
     }
 
 }

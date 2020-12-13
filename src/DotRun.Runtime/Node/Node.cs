@@ -243,6 +243,8 @@ namespace DotRun.Runtime
         {
             return Platform.GetUsername();
         }
+
+        public abstract Task Delete(StepContext context, string path);
     }
 
 }

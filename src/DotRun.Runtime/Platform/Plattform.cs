@@ -27,6 +27,7 @@ namespace DotRun.Runtime
         public abstract Task<string> FindExecutablePath(string executable);
         public abstract Task<string> GetHomeDir();
         public abstract Task<string> GetUsername();
+        public abstract Task Delete(string path);
     }
 
 }

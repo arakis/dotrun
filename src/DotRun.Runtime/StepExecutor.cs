@@ -45,7 +45,10 @@ namespace DotRun.Runtime
                 await RunUses();
 
             if (!string.IsNullOrEmpty(Step.Run))
+            {
+                Console.WriteLine("Shell: " + Step.Run);
                 return await Shell.Execute(Context, Output);
+            }
 
             return new StepResult();
         }

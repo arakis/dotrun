@@ -50,6 +50,15 @@ namespace DotRun.Runtime
             return Task.FromResult(Environment.UserName);
         }
 
+        public override Task Delete(StepContext context, string path)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+            else if (Directory.Exists(path))
+                Directory.Delete(path, true);
+
+            return Task.CompletedTask;
+        }
     }
 
 }

@@ -16,6 +16,7 @@ namespace DotRun.Runtime
         Task<bool> Init();
 
         Task WriteFile(StepContext context, string path, Stream source);
+        Task Delete(StepContext context, string path);
 
         RunningProcess ExecuteCommand(NodeCommand cmd);
         Task<string> FindExecutablePath(string executable);

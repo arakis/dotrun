@@ -50,10 +50,38 @@ namespace DotRun.Runtime
             return output.Lines.FirstOrDefault();
         }
 
-        public override Task<string> GetUsername()
+        public override async Task<string> GetUsername()
         {
-            throw new NotImplementedException();
+            var output = new MemoryOutput();
+
+            await Node.ExecuteCommand(new NodeCommand
+            {
+                FileName = "/bin/sh",
+                Arguments = new string[] { "-c", "'cd ~ && pwd'" },
+                Output = output,
+            }).CompletedTask;
+
+            return output.Lines.FirstOrDefault();
         }
+
+        public override async Task Delete(string path)
+        {
+            // avoid accident
+            if (!path.IsSet() || path == "/")
+                return;
+
+            var output = new MemoryOutput();
+
+            await Node.ExecuteCommand(new NodeCommand
+            {
+                FileName = "/bin/sh",
+                Arguments = new string[] { "-c", "rm -rf " + path },
+                Output = output,
+            }).CompletedTask;
+
+            return;
+        }
+
     }
 
 }

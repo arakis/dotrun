@@ -24,7 +24,7 @@ namespace DotRun.Runtime
         {
             var command = context.Step.Run;
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
-            var tmpScriptPath = "/tmp/script.ps1";
+            var tmpScriptPath = "/tmp/script-" + StringHelper.RandomString() + ".ps1";
             await context.Node.WriteFile(context, tmpScriptPath, ms);
             await context.Node.ExecuteCommand(new NodeCommand
             {
@@ -34,6 +34,7 @@ namespace DotRun.Runtime
                 Output = output,
                 Timeout = TimeSpan.MaxValue,
             }).CompletedTask;
+            await context.Node.Delete(context, tmpScriptPath);
             return new StepResult();
         }
 

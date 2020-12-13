@@ -14,19 +14,6 @@ namespace DotRun.Runtime
     {
         public Project Project { get; internal set; }
 
-        private IList<Job> _Jobs;
-
-        [JsonIgnore]
-        public IList<Job> Jobs
-        {
-            get
-            {
-                if (_Jobs == null)
-                    _Jobs = JobsDict.Values.ToList();
-                return _Jobs;
-            }
-        }
-
         private IList<NodeModel> _Nodes;
 
         [JsonIgnore]
@@ -42,6 +29,19 @@ namespace DotRun.Runtime
 
         [JsonProperty("nodes")]
         internal Dictionary<string, NodeModel> NodesDict { get; set; } = new Dictionary<string, NodeModel>();
+
+        private IList<Job> _Jobs;
+
+        [JsonIgnore]
+        public IList<Job> Jobs
+        {
+            get
+            {
+                if (_Jobs == null)
+                    _Jobs = JobsDict.Values.ToList();
+                return _Jobs;
+            }
+        }
 
         [JsonProperty("jobs")]
         internal Dictionary<string, Job> JobsDict { get; set; }
@@ -70,7 +70,10 @@ namespace DotRun.Runtime
                 wf.Name = Path.GetFileNameWithoutExtension(workflowFilePath);
 
             foreach (var entry in wf.JobsDict)
+            {
                 entry.Value.Name = entry.Key;
+                entry.Value.Init();
+            }
 
             if (!wf.NodesDict.ContainsKey("local"))
                 wf.NodesDict.Add("local", new NodeModel { Type = NodeType.Local });

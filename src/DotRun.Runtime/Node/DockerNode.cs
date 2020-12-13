@@ -129,6 +129,11 @@ namespace DotRun.Runtime
             base.Dispose();
         }
 
+        public override Task Delete(StepContext context, string path)
+        {
+            return Platform.Delete(path);
+        }
+
     }
 
 }
