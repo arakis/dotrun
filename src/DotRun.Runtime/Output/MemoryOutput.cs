@@ -6,23 +6,25 @@ using System.Collections.Generic;
 namespace DotRun.Runtime
 {
 
-    public class MemoryOutput : IOutput
+    public class MemoryOutput : Output
     {
-        public void Write(string text)
+        public override void Write(string text)
         {
         }
 
         public List<string> Lines { get; } = new List<string>();
 
-        public void WriteLine(string text)
+        public override void WriteLine(string text)
         {
-            Lines.Add(text);
+            foreach (var line in SplitLine(text))
+                Lines.Add(line);
         }
 
         public List<string> Errors { get; } = new List<string>();
-        public void ErrorLine(string text)
+        public override void ErrorLine(string text)
         {
-            Errors.Add(text);
+            foreach (var line in SplitLine(text))
+                Errors.Add(line);
         }
     }
 

@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet;
@@ -42,22 +44,153 @@ namespace DotRun.Runtime
             return Task.Run(() => ScpClient.Upload(source, path));
         }
 
+        private class ReceivedHandler : IDisposable
+        {
+            private readonly AutoResetEvent _signal;
+            private readonly StringBuilder _buffer = new StringBuilder();
+            public ReceivedHandler()
+            {
+                _signal = new AutoResetEvent(false);
+            }
+
+            public void OnReceive(object sender, EventArgs e)
+            {
+                var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+                var rawData = (byte[])dataProp.GetValue(e);
+                var data = Encoding.ASCII.GetString(rawData);
+                lock (_buffer)
+                {
+                    // append to buffer for reader to consume
+                    _buffer.Append(data);
+                }
+
+                // notify reader
+                try
+                {
+                    Signal.Set();
+                }
+                catch // may get a WaitHandle closed exception
+                {
+                }
+            }
+
+            public AutoResetEvent Signal => _signal;
+
+            public string ReadLine()
+            {
+                lock (_buffer)
+                {
+                    // cleanup buffer
+                    var result = _buffer.ToString();
+                    _buffer.Clear();
+                    return result;
+                }
+            }
+
+            public void Dispose()
+            {
+                _signal.Dispose();
+            }
+        }
+
+        private class ExtendedReceivedHandler : IDisposable
+        {
+            private readonly AutoResetEvent _signal;
+            private readonly StringBuilder _buffer = new StringBuilder();
+            public ExtendedReceivedHandler()
+            {
+                _signal = new AutoResetEvent(false);
+            }
+
+            public void OnReceive(object sender, EventArgs e)
+            {
+                var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+                var rawData = (byte[])dataProp.GetValue(e);
+
+                var dataProp2 = e.GetType().GetProperty("DataTypeCode", BindingFlags.Instance | BindingFlags.Public);
+                var rawDataTypeCode = (uint)dataProp2.GetValue(e);
+
+                if (rawDataTypeCode == 1)
+                {
+                    var data = Encoding.ASCII.GetString(rawData);
+                    lock (_buffer)
+                    {
+                        // append to buffer for reader to consume
+                        _buffer.Append(data);
+                    }
+                }
+
+                // notify reader
+                try
+                {
+                    Signal.Set();
+                }
+                catch // may get a WaitHandle closed exception
+                {
+                }
+            }
+
+            public AutoResetEvent Signal => _signal;
+
+            public string ReadLine()
+            {
+                lock (_buffer)
+                {
+                    // cleanup buffer
+                    var result = _buffer.ToString();
+                    _buffer.Clear();
+                    return result;
+                }
+            }
+
+            public void Dispose()
+            {
+                _signal.Dispose();
+            }
+        }
+
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
-            using var c = SshClient.CreateCommand($"{cmd.FileName} {string.Join(" ", cmd.Arguments)}");
-            c.Execute();
+
+            using var command = SshClient.CreateCommand($"{cmd.FileName} {string.Join(" ", cmd.Arguments)}");
+
+            // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream
+            var result = command.BeginExecute();
+            var channelField = command.GetType().GetField("_channel", BindingFlags.Instance | BindingFlags.NonPublic);
+            var channel = channelField.GetValue(command);
+            var receivedEvent = channel.GetType().GetEvent("DataReceived", BindingFlags.Instance | BindingFlags.Public);
+            var extendedDataEvent = channel.GetType().GetEvent("ExtendedDataReceived", BindingFlags.Instance | BindingFlags.Public);
+
+            using var handler = new ReceivedHandler();
+            using var handler2 = new ExtendedReceivedHandler();
+            // add event handler here
+            receivedEvent.AddEventHandler(channel, Delegate.CreateDelegate(receivedEvent.EventHandlerType, handler, handler.GetType().GetMethod("OnReceive")));
+            extendedDataEvent.AddEventHandler(channel, Delegate.CreateDelegate(extendedDataEvent.EventHandlerType, handler2, handler2.GetType().GetMethod("OnReceive")));
+
+            while (true)
+            {
+                // wait on both command completion and our custom wait handle. This is blocking call
+                var t = WaitHandle.WaitAny(new[] { result.AsyncWaitHandle, handler.Signal, handler2.Signal });
+                // if done - break
+                if (result.IsCompleted)
+                    break;
+
+                if (t == 1)
+                {
+                    var line = handler.ReadLine();
+                    cmd.Output.WriteLine(line);
+                }
+                else
+                {
+                    var line = handler2.ReadLine();
+                    cmd.Output.ErrorLine(line);
+                }
+            }
 
             var procResult = new ProcessResult
             {
-                ExitCode = c.ExitStatus,
-                Completed = true,
+                ExitCode = command.ExitStatus,
             };
-
-            if (c.Result.IsSet())
-                cmd.Output.WriteLine(c.Result);
-
-            if (c.Error.IsSet())
-                cmd.Output.ErrorLine(c.Error);
 
             return new RunningProcess
             {

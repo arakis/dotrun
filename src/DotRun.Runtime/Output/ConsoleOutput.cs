@@ -5,23 +5,29 @@ using System;
 
 namespace DotRun.Runtime
 {
-    public class ConsoleOutput : IOutput
+    public class ConsoleOutput : Output
     {
-        public void Write(string text)
+        public override void Write(string text)
         {
             Console.Write(text);
         }
 
-        public void WriteLine(string text)
+        public override void WriteLine(string text)
         {
-            Console.Write("> ");
-            Console.WriteLine(text);
+            foreach (var line in SplitLine(text))
+            {
+                Console.Write("> ");
+                Console.WriteLine(line);
+            }
         }
 
-        public void ErrorLine(string text)
+        public override void ErrorLine(string text)
         {
-            Console.Write("! ");
-            Console.WriteLine(text);
+            foreach (var line in SplitLine(text))
+            {
+                Console.Write("! ");
+                Console.WriteLine(line);
+            }
         }
     }
 
