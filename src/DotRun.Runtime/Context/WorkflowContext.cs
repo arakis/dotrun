@@ -19,6 +19,8 @@ namespace DotRun.Runtime
         private Dictionary<string, INode> Nodes = new Dictionary<string, INode>();
         public INode GetNode(string name)
         {
+            name = name.ReplaceVariables(this);
+
             if (name == null)
                 name = "local";
 

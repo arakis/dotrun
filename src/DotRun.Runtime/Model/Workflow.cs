@@ -46,6 +46,9 @@ namespace DotRun.Runtime
         [JsonProperty("jobs")]
         internal Dictionary<string, Job> JobsDict { get; set; }
 
+        [JsonProperty("variables")]
+        internal List<Variable> Variables { get; set; } = new List<Variable>();
+
         [JsonProperty]
         internal string Kind { get; set; }
         internal string WorkflowFilePath { get; set; }

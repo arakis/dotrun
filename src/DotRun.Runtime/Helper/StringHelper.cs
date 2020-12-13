@@ -14,13 +14,23 @@ namespace DotRun.Runtime
     public static class StringHelper
     {
         private static Random Random = new Random();
-        public static string RandomString()
+        internal static string RandomString()
         {
             return Random.Next(int.MaxValue).ToString("X8");
         }
 
-        public static bool IsSet(this string str)
+        internal static bool IsSet(this string str)
             => !string.IsNullOrEmpty(str);
+
+        // TODO: Interface IReplaceVariable
+        internal static string ReplaceVariables(this string str, WorkflowContext context)
+        {
+            // TODO: use regex
+            foreach (var var in context.Workflow.Variables)
+                str = str.Replace("{{ " + var.Name + " }}", var.Value);
+
+            return str;
+        }
 
     }
 
