@@ -9,12 +9,12 @@ namespace DotRun.Runtime
     public class ConsoleOutput : Output
     {
 
-        public override void Log(LogItem itm)
+        public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             ConsoleColor? color = null;
             string prefix = null;
 
-            switch (itm.LogLevel)
+            switch (logLevel)
             {
                 case LogLevel.Information:
                     color = ConsoleColor.DarkGreen;
@@ -42,7 +42,7 @@ namespace DotRun.Runtime
             {
                 UseColor(color, () =>
                 {
-                    foreach (var line in SplitLine(itm.Message))
+                    foreach (var line in SplitLine(formatter(state, exception)))
                     {
                         Console.Write(prefix);
                         Console.WriteLine(line);

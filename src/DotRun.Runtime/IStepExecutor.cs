@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
@@ -11,7 +12,7 @@ namespace DotRun.Runtime
         public StepContext Context { get; }
         public INode Node { get; }
         public IShell Shell { get; }
-        public IOutput Output { get; }
+        public ILogger Output { get; }
         public void Abort();
         public Task<StepResult> Run();
     }

@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
@@ -20,7 +21,7 @@ namespace DotRun.Runtime
                 return "powershell.exe";
         }
 
-        public async Task<StepResult> Execute(StepContext context, IOutput output)
+        public async Task<StepResult> Execute(StepContext context, ILogger output)
         {
             var command = context.Step.Run;
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
@@ -40,7 +41,7 @@ namespace DotRun.Runtime
             throw new Exception($"Unable to get node '{name}'");
         }
 
-        public IOutput InternalOutput { get; internal set; } = new ConsoleOutput();
+        public ILogger InternalOutput { get; internal set; } = new ConsoleOutput();
 
     }
 

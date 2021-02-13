@@ -46,8 +46,8 @@ namespace DotRun.Runtime
 
         private class ReceivedHandler : IDisposable
         {
-            protected IOutput Output;
-            public ReceivedHandler(IOutput output)
+            protected ILogger Output;
+            public ReceivedHandler(ILogger output)
             {
                 Output = output;
             }
@@ -57,7 +57,7 @@ namespace DotRun.Runtime
                 var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
                 var rawData = (byte[])dataProp.GetValue(e);
                 var data = Encoding.ASCII.GetString(rawData);
-                Output.Info(data);
+                Output.LogInformation(data);
             }
 
             public void Dispose()
@@ -68,8 +68,8 @@ namespace DotRun.Runtime
 
         private class ExtendedReceivedHandler : IDisposable
         {
-            protected IOutput Output;
-            public ExtendedReceivedHandler(IOutput output)
+            protected ILogger Output;
+            public ExtendedReceivedHandler(ILogger output)
             {
                 Output = output;
             }
@@ -85,7 +85,7 @@ namespace DotRun.Runtime
                 if (rawDataTypeCode == 1)
                 {
                     var data = Encoding.ASCII.GetString(rawData);
-                    Output.Error(data);
+                    Output.LogError(data);
                 }
             }
             public void Dispose()
@@ -98,7 +98,7 @@ namespace DotRun.Runtime
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
             var cmdLine = $"{cmd.FileName} {string.Join(" ", cmd.Arguments)}";
-            cmd.Output.Debug("SSH: " + cmdLine);
+            cmd.Output.LogDebug("SSH: " + cmdLine);
             using var command = SshClient.CreateCommand(cmdLine);
 
             // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream

@@ -11,25 +11,24 @@ namespace DotRun.Runtime
     public class MemoryOutput : Output
     {
 
-        public List<LogItem> Items { get; } = new List<LogItem>();
-        internal IEnumerable<LogItem> InfoItems { get; private set; }
-        internal IEnumerable<LogItem> ErrorItems { get; private set; }
+        //public List<LogItem> Items { get; } = new List<LogItem>();
+        //internal IEnumerable<LogItem> InfoItems { get; private set; }
+        //internal IEnumerable<LogItem> ErrorItems { get; private set; }
 
         public MemoryOutput()
         {
-            InfoItems = Items.Where(x => x.LogLevel == LogLevel.Information);
-            ErrorItems = Items.Where(x => x.LogLevel == LogLevel.Error);
+            //InfoItems = Items.Where(x => x.LogLevel == LogLevel.Information);
+            //ErrorItems = Items.Where(x => x.LogLevel == LogLevel.Error);
         }
 
         public List<string> InfoLines { get; } = new List<string>();
         public List<string> ErrorLines { get; } = new List<string>();
 
-        public override void Log(LogItem itm)
+        public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, System.Exception exception, System.Func<TState, System.Exception, string> formatter)
         {
-            Items.Add(itm);
-            foreach (var line in SplitLine(itm.Message))
+            foreach (var line in SplitLine(formatter(state, exception)))
             {
-                if (itm.LogLevel == LogLevel.Error)
+                if (logLevel == LogLevel.Error)
                     ErrorLines.Add(line);
                 else
                     InfoLines.Add(line);

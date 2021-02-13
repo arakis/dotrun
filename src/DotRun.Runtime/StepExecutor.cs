@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
@@ -17,7 +18,7 @@ namespace DotRun.Runtime
         public INode Node { get; private set; }
 
         public IShell Shell { get; private set; }
-        public IOutput Output { get; private set; }
+        public ILogger Output { get; private set; }
 
         public static IStepExecutor Create(Step step, StepContext context)
         {
@@ -41,14 +42,14 @@ namespace DotRun.Runtime
 
         internal async Task<StepResult> RunInternal()
         {
-            Output.Info($"Start Step {Step.Name}");
+            Output.LogInformation($"Start Step {Step.Name}");
 
             if (!string.IsNullOrEmpty(Step.Uses))
                 await RunUses();
 
             if (!string.IsNullOrEmpty(Step.Run))
             {
-                Output.Info("Shell: " + Step.Run);
+                Output.LogInformation("Shell: " + Step.Run);
                 return await Shell.Execute(Context, Output);
             }
 
@@ -60,9 +61,9 @@ namespace DotRun.Runtime
             var use = UseAction.Create(Context);
             if (use != null)
             {
-                Output.Info("Step.Uses start: " + Step.Uses);
+                Output.LogInformation("Step.Uses start: " + Step.Uses);
                 await use.Run();
-                Output.Info("Step.Uses done: " + Step.Uses);
+                Output.LogInformation("Step.Uses done: " + Step.Uses);
             }
 
             return;

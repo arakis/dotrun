@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
@@ -15,7 +16,7 @@ namespace DotRun.Runtime
         public IPlatform Platform { get; protected set; }
 
         public WorkflowContext Context { get; private set; }
-        public IOutput InternalOutput => Context.InternalOutput;
+        public ILogger InternalOutput => Context.InternalOutput;
         public NodeModel Model { get; private set; }
 
         public Node(WorkflowContext context, NodeModel model)
@@ -120,7 +121,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.Info(e.Data);
+                    cmd.Output.LogInformation(e.Data);
                 }
             };
 
@@ -139,7 +140,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.Error(e.Data);
+                    cmd.Output.LogError(e.Data);
                 }
             };
 

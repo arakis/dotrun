@@ -9,10 +9,21 @@ using Microsoft.Extensions.Logging;
 namespace DotRun.Runtime
 {
 
-    public abstract class Output : IOutput
+    public abstract class Output : ILogger
     {
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
 
-        public abstract void Log(LogItem itm);
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public virtual void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+        }
 
         protected string[] SplitLine(string line)
         {
