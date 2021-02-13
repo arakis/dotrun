@@ -12,11 +12,30 @@ namespace DotRun.Runtime
         public override void Log(LogItem itm)
         {
             ConsoleColor? color = null;
-            string prefix = "> ";
-            if (itm.LogLevel == LogLevel.Error)
+            string prefix = null;
+
+            switch (itm.LogLevel)
             {
-                color = ConsoleColor.Red;
-                prefix = "! ";
+                case LogLevel.Information:
+                    color = ConsoleColor.DarkGreen;
+                    prefix = "> ";
+                    break;
+                case LogLevel.Warning:
+                    color = ConsoleColor.Yellow;
+                    prefix = "? ";
+                    break;
+                case LogLevel.Error:
+                    color = ConsoleColor.Red;
+                    prefix = "! ";
+                    break;
+                case LogLevel.Trace:
+                    color = ConsoleColor.DarkYellow;
+                    prefix = ": ";
+                    break;
+                case LogLevel.Debug:
+                    color = ConsoleColor.DarkGray;
+                    prefix = "% ";
+                    break;
             }
 
             lock (this)

@@ -57,7 +57,7 @@ namespace DotRun.Runtime
                 var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
                 var rawData = (byte[])dataProp.GetValue(e);
                 var data = Encoding.ASCII.GetString(rawData);
-                Output.WriteLine(data);
+                Output.Info(data);
             }
 
             public void Dispose()
@@ -85,7 +85,7 @@ namespace DotRun.Runtime
                 if (rawDataTypeCode == 1)
                 {
                     var data = Encoding.ASCII.GetString(rawData);
-                    Output.ErrorLine(data);
+                    Output.Error(data);
                 }
             }
             public void Dispose()
@@ -98,7 +98,7 @@ namespace DotRun.Runtime
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
             var cmdLine = $"{cmd.FileName} {string.Join(" ", cmd.Arguments)}";
-            Console.WriteLine("SSH: " + cmdLine);
+            cmd.Output.Debug("SSH: " + cmdLine);
             using var command = SshClient.CreateCommand(cmdLine);
 
             // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream

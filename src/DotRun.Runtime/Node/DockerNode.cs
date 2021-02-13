@@ -42,7 +42,7 @@ namespace DotRun.Runtime
             if (path.StartsWith("~"))
                 path = (await GetHomeDir()) + path.Substring(1);
 
-            InternalOutput.WriteLine("Writing file " + path);
+            InternalOutput.Info("Writing file " + path);
 
             await ExecuteLocalCommand(new NodeCommand
             {

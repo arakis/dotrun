@@ -41,14 +41,14 @@ namespace DotRun.Runtime
 
         internal async Task<StepResult> RunInternal()
         {
-            Output.WriteLine($"Start Step {Step.Name}");
+            Output.Info($"Start Step {Step.Name}");
 
             if (!string.IsNullOrEmpty(Step.Uses))
                 await RunUses();
 
             if (!string.IsNullOrEmpty(Step.Run))
             {
-                Console.WriteLine("Shell: " + Step.Run);
+                Output.Info("Shell: " + Step.Run);
                 return await Shell.Execute(Context, Output);
             }
 
@@ -60,9 +60,9 @@ namespace DotRun.Runtime
             var use = UseAction.Create(Context);
             if (use != null)
             {
-                Console.WriteLine("Step.Uses start: " + Step.Uses);
+                Output.Info("Step.Uses start: " + Step.Uses);
                 await use.Run();
-                Console.WriteLine("Step.Uses done: " + Step.Uses);
+                Output.Info("Step.Uses done: " + Step.Uses);
             }
 
             return;

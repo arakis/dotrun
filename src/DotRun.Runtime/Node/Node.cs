@@ -120,7 +120,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.WriteLine(e.Data);
+                    cmd.Output.Info(e.Data);
                 }
             };
 
@@ -139,7 +139,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.ErrorLine(e.Data);
+                    cmd.Output.Error(e.Data);
                 }
             };
 
