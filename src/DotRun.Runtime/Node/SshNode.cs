@@ -57,7 +57,7 @@ namespace DotRun.Runtime
                 var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
                 var rawData = (byte[])dataProp.GetValue(e);
                 var data = Encoding.ASCII.GetString(rawData);
-                Output.LogInformation(data);
+                Output.LogProcessStandartOutput(data);
             }
 
             public void Dispose()
@@ -85,7 +85,7 @@ namespace DotRun.Runtime
                 if (rawDataTypeCode == 1)
                 {
                     var data = Encoding.ASCII.GetString(rawData);
-                    Output.LogError(data);
+                    Output.LogProcessErrorOutput(data);
                 }
             }
             public void Dispose()

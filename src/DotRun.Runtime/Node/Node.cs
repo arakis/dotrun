@@ -121,7 +121,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.LogInformation(e.Data);
+                    cmd.Output.LogProcessStandartOutput(e.Data);
                 }
             };
 
@@ -140,7 +140,7 @@ namespace DotRun.Runtime
                 }
                 else
                 {
-                    cmd.Output.LogError(e.Data);
+                    cmd.Output.LogProcessErrorOutput(e.Data);
                 }
             };
 

@@ -6,35 +6,32 @@ using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
+
     public class ConsoleOutput : Output
     {
+
+        public string Name { get; set; }
 
         public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             ConsoleColor? color = null;
-            string prefix = null;
 
             switch (logLevel)
             {
                 case LogLevel.Information:
                     color = ConsoleColor.DarkGreen;
-                    prefix = "> ";
                     break;
                 case LogLevel.Warning:
                     color = ConsoleColor.Yellow;
-                    prefix = "? ";
                     break;
                 case LogLevel.Error:
                     color = ConsoleColor.Red;
-                    prefix = "! ";
                     break;
                 case LogLevel.Trace:
                     color = ConsoleColor.DarkYellow;
-                    prefix = ": ";
                     break;
                 case LogLevel.Debug:
                     color = ConsoleColor.DarkGray;
-                    prefix = "% ";
                     break;
             }
 
@@ -42,11 +39,10 @@ namespace DotRun.Runtime
             {
                 UseColor(color, () =>
                 {
-                    foreach (var line in SplitLine(formatter(state, exception)))
-                    {
-                        Console.Write(prefix);
-                        Console.WriteLine(line);
-                    }
+                    if (!string.IsNullOrEmpty(Name))
+                        Console.Write("[" + Name + "] ");
+
+                    Console.WriteLine(formatter(state, exception));
                 });
             }
         }

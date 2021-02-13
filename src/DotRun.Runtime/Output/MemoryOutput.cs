@@ -28,13 +28,12 @@ namespace DotRun.Runtime
         public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, System.Exception exception, System.Func<TState, System.Exception, string> formatter)
         {
             Items.Add(new LogEntry<object>(logLevel, null, eventId, state, exception, (st, ex) => formatter((TState)st, ex)));
-            foreach (var line in SplitLine(formatter(state, exception)))
-            {
-                if (logLevel == LogLevel.Error)
-                    ErrorLines.Add(line);
-                else
-                    InfoLines.Add(line);
-            }
+
+            var msg = formatter(state, exception);
+            if (logLevel == LogLevel.Error)
+                ErrorLines.Add(msg);
+            else
+                InfoLines.Add(msg);
         }
     }
 

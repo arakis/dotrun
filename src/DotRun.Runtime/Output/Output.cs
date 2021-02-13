@@ -25,16 +25,6 @@ namespace DotRun.Runtime
         {
         }
 
-        protected string[] SplitLine(string line)
-        {
-            line = line.Replace("\r", "");
-
-            if (line.EndsWith("\n"))
-                line = line.Substring(0, line.Length - 1);
-
-            return line.Split("\n").Select(s => s.TrimEnd()).ToArray();
-        }
-
     }
 
 }
