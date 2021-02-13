@@ -18,7 +18,7 @@ namespace DotRun.Runtime
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
             var tmpScriptPath = "/tmp/script.bat";
             await context.Node.WriteFile(context, tmpScriptPath, ms);
-            await context.Node.ExecuteCommand(new NodeCommand
+            var result = await context.Node.ExecuteCommand(new NodeCommand
             {
                 Context = context.WorkflowContext,
                 FileName = "cmd.exe",
@@ -26,7 +26,12 @@ namespace DotRun.Runtime
                 Output = output,
                 Timeout = TimeSpan.MaxValue,
             }).CompletedTask;
-            return new StepResult();
+
+            return new StepResult(context)
+            {
+                Failed = !result.Completed || (result.ExitCode != null && result.ExitCode != 0),
+                ExitCode = result.ExitCode,
+            };
         }
 
     }

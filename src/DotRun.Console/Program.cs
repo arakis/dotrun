@@ -35,8 +35,8 @@ namespace DotRun.Console
             if (idx > -1 && idx + 1 < args.Length)
                 cfgWorkflow = args[idx + 1];
 
-            await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run();
-            System.Console.WriteLine("Done");
+            var result = await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run();
+            System.Console.WriteLine(result.Failed ? "Failed" : "Done");
         }
     }
 }

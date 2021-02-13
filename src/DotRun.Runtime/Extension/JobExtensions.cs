@@ -21,18 +21,22 @@ namespace DotRun.Runtime
             }
             else
             {
-                await RunInternal(job, context);
+                return await RunInternal(job, context);
             }
 
-            return new JobResult();
+            return new JobResult(context);
         }
 
         private static async Task<JobResult> RunInternal(this Job job, JobContext context)
         {
+            var jobResult = new JobResult(context);
             foreach (var step in job.Steps)
-                await step.Run(new StepContext(step, context));
+            {
+                var stepResult = await step.Run(new StepContext(step, context));
+                jobResult.StepResults.Add(stepResult);
+            }
 
-            return new JobResult();
+            return jobResult;
         }
 
     }

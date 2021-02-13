@@ -51,10 +51,13 @@ namespace DotRun.Runtime
             if (!string.IsNullOrEmpty(Step.Run))
             {
                 Output.LogInformation("Shell: " + Step.Run);
-                return await Shell.Execute(Context, Output);
+                var result = await Shell.Execute(Context, Output);
+                if (result.ExitCode != null)
+                    Output.LogInformation("ExitCode: " + result.ExitCode);
+                return result;
             }
 
-            return new StepResult();
+            return new StepResult(Context);
         }
 
         private async Task RunUses()

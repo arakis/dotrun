@@ -27,7 +27,7 @@ namespace DotRun.Runtime
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
             var tmpScriptPath = "/tmp/script-" + StringHelper.RandomString() + ".ps1";
             await context.Node.WriteFile(context, tmpScriptPath, ms);
-            await context.Node.ExecuteCommand(new NodeCommand
+            var result = await context.Node.ExecuteCommand(new NodeCommand
             {
                 Context = context.WorkflowContext,
                 FileName = await DetectPowerShell(context),
@@ -36,7 +36,12 @@ namespace DotRun.Runtime
                 Timeout = TimeSpan.MaxValue,
             }).CompletedTask;
             await context.Node.Delete(context, tmpScriptPath);
-            return new StepResult();
+
+            return new StepResult(context)
+            {
+                Failed = !result.Completed || (result.ExitCode != null && result.ExitCode != 0),
+                ExitCode = result.ExitCode,
+            };
         }
 
     }

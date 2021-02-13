@@ -17,12 +17,14 @@ namespace DotRun.Runtime
 
         public static async Task<WorkflowResult> Run(this Workflow workflow, WorkflowContext context)
         {
+            var workflowResult = new WorkflowResult(context);
             foreach (var job in workflow.Jobs)
             {
-                var status = await job.Run(new JobContext(job, context));
+                var jobResult = await job.Run(new JobContext(job, context));
+                workflowResult.JobResults.Add(jobResult);
             }
 
-            return new WorkflowResult();
+            return workflowResult;
         }
 
     }
