@@ -33,7 +33,7 @@ namespace DotRun.Runtime
                 Output = output,
             }).CompletedTask;
 
-            return output.Lines.FirstOrDefault();
+            return output.InfoLines.FirstOrDefault();
         }
 
         public override async Task<string> GetHomeDir()
@@ -47,7 +47,7 @@ namespace DotRun.Runtime
                 Output = output,
             }).CompletedTask;
 
-            return output.Lines.FirstOrDefault();
+            return output.InfoLines.FirstOrDefault();
         }
 
         public override async Task<string> GetUsername()
@@ -61,7 +61,7 @@ namespace DotRun.Runtime
                 Output = output,
             }).CompletedTask;
 
-            return output.Lines.FirstOrDefault();
+            return output.InfoLines.FirstOrDefault();
         }
 
         public override async Task Delete(string path)

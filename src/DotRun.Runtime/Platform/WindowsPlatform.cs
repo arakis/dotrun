@@ -32,7 +32,7 @@ namespace DotRun.Runtime
                 Output = output,
             }).CompletedTask;
 
-            return output.Lines.FirstOrDefault();
+            return output.InfoLines.FirstOrDefault();
         }
 
         public override Task<string> GetHomeDir()

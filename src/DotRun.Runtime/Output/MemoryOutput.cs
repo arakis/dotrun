@@ -2,29 +2,38 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
 
     public class MemoryOutput : Output
     {
-        public override void Write(string text)
+
+        public List<LogItem> Items { get; } = new List<LogItem>();
+        internal IEnumerable<LogItem> InfoItems { get; private set; }
+        internal IEnumerable<LogItem> ErrorItems { get; private set; }
+
+        public MemoryOutput()
         {
+            InfoItems = Items.Where(x => x.LogLevel == LogLevel.Information);
+            ErrorItems = Items.Where(x => x.LogLevel == LogLevel.Error);
         }
 
-        public List<string> Lines { get; } = new List<string>();
+        public List<string> InfoLines { get; } = new List<string>();
+        public List<string> ErrorLines { get; } = new List<string>();
 
-        public override void WriteLine(string text)
+        public override void Log(LogItem itm)
         {
-            foreach (var line in SplitLine(text))
-                Lines.Add(line);
-        }
-
-        public List<string> Errors { get; } = new List<string>();
-        public override void ErrorLine(string text)
-        {
-            foreach (var line in SplitLine(text))
-                Errors.Add(line);
+            Items.Add(itm);
+            foreach (var line in SplitLine(itm.Message))
+            {
+                if (itm.LogLevel == LogLevel.Error)
+                    ErrorLines.Add(line);
+                else
+                    InfoLines.Add(line);
+            }
         }
     }
 

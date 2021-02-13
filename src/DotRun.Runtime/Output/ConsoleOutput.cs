@@ -2,33 +2,56 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
     public class ConsoleOutput : Output
     {
-        public override void Write(string text)
-        {
-            Console.Write(text);
-        }
 
-        public override void WriteLine(string text)
+        public override void Log(LogItem itm)
         {
-            foreach (var line in SplitLine(text))
+            ConsoleColor? color = null;
+            string prefix = "> ";
+            if (itm.LogLevel == LogLevel.Error)
             {
-                Console.Write("> ");
-                Console.WriteLine(line);
+                color = ConsoleColor.Red;
+                prefix = "! ";
+            }
+
+            lock (this)
+            {
+                UseColor(color, () =>
+                {
+                    foreach (var line in SplitLine(itm.Message))
+                    {
+                        Console.Write(prefix);
+                        Console.WriteLine(line);
+                    }
+                });
             }
         }
 
-        public override void ErrorLine(string text)
+        private void UseColor(ConsoleColor? color, Action action)
         {
-            foreach (var line in SplitLine(text))
+            if (color == null)
             {
-                Console.Write("! ");
-                Console.WriteLine(line);
+                action();
+                return;
+            }
+
+            var oldColor = Console.ForegroundColor;
+            Console.ForegroundColor = (ConsoleColor)color;
+            try
+            {
+                action();
+            }
+            finally
+            {
+                Console.ForegroundColor = oldColor;
             }
         }
+
     }
 
 }

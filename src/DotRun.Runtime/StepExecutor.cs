@@ -41,6 +41,8 @@ namespace DotRun.Runtime
 
         internal async Task<StepResult> RunInternal()
         {
+            Output.WriteLine($"Start Step {Step.Name}");
+
             if (!string.IsNullOrEmpty(Step.Uses))
                 await RunUses();
 

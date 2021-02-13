@@ -1,19 +1,18 @@
 ﻿// This file is part of DotRun. Web: https://github.com/Arakis/DotRun
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime
 {
 
     public abstract class Output : IOutput
     {
-        public abstract void ErrorLine(string text);
 
-        public abstract void Write(string text);
-
-        public abstract void WriteLine(string text);
+        public abstract void Log(LogItem itm);
 
         protected string[] SplitLine(string line)
         {
