@@ -16,14 +16,21 @@ namespace DotRun.Runtime.Tests
         }
 
         [Fact]
-        public async void Test1()
+        public async Task Local()
         {
-            var result = await Run("proj1", "demo");
+            var result = await Run("proj1", "local");
             Assert.False(result.Failed);
         }
 
         [Fact]
-        public async void Error()
+        public async Task Docker()
+        {
+            var result = await Run("proj1", "docker");
+            Assert.False(result.Failed);
+        }
+
+        [Fact]
+        public async Task Error()
         {
             var result = await Run("proj1", "error");
             Assert.True(result.Failed);

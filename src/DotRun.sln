@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotRun.Runtime", "DotRun.Ru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotRun.Runtime.Tests", "DotRun.Runtime.Tests\DotRun.Runtime.Tests.csproj", "{C3ACB76E-59C0-44DE-932B-644CFA9DB2CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotRun.Tests.Runner", "DotRun.Tests.Runner\DotRun.Tests.Runner.csproj", "{73E68138-75A9-429D-9BDA-E545720E6401}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C3ACB76E-59C0-44DE-932B-644CFA9DB2CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3ACB76E-59C0-44DE-932B-644CFA9DB2CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3ACB76E-59C0-44DE-932B-644CFA9DB2CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73E68138-75A9-429D-9BDA-E545720E6401}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73E68138-75A9-429D-9BDA-E545720E6401}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73E68138-75A9-429D-9BDA-E545720E6401}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73E68138-75A9-429D-9BDA-E545720E6401}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

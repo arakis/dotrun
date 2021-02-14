@@ -86,7 +86,7 @@ namespace DotRun.Runtime
         private async Task<ProcessResult> ExecuteLocalCommandInternal(NodeCommand cmd, TaskCompletionSource<bool> startedTask, TaskCompletionSource startedOutput, CancellationToken cancellationToken)
         {
             var num = Interlocked.Increment(ref ExecCount);
-            Console.WriteLine("LocalExec #" + num.ToString() + ":" + cmd.FileName + " " + string.Join(" ", cmd.Arguments));
+            Context.InternalOutput.LogInformation("LocalExec #" + num.ToString() + ":" + cmd.FileName + " " + string.Join(" ", cmd.Arguments));
             var result = new ProcessResult();
 
             var startInfo = new ProcessStartInfo
@@ -179,7 +179,7 @@ namespace DotRun.Runtime
                 {
                     result.Completed = true;
                     result.ExitCode = process.ExitCode;
-                    Console.WriteLine("LocalExec #" + num.ToString() + ": ExitCode " + result.ExitCode);
+                    Context.InternalOutput.LogInformation("LocalExec #" + num.ToString() + ": ExitCode " + result.ExitCode);
                 }
                 else
                 {
@@ -187,7 +187,7 @@ namespace DotRun.Runtime
                     {
                         // Kill hung process
                         process.Kill();
-                        Console.WriteLine("LocalExec #" + num.ToString() + ": Killed");
+                        Context.InternalOutput.LogError("LocalExec #" + num.ToString() + ": Killed");
                     }
                     catch
                     {
@@ -197,7 +197,7 @@ namespace DotRun.Runtime
             else
             {
                 startedTask.SetResult(false);
-                Console.WriteLine("LocalExec #" + num.ToString() + ": Failed");
+                Context.InternalOutput.LogError("LocalExec #" + num.ToString() + ": Failed");
             }
 
             return result;

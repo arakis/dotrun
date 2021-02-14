@@ -2,9 +2,6 @@ kind: workflow
 
 nodes:
 
-  local1:
-    type: local
-
   docker1:
     type: docker
     image: busybox:latest
@@ -16,13 +13,7 @@ jobs:
     steps:
 
     - name: s1
-      node: local1
-      run: |
-        echo Hello from Local
-        dir
-
-    - name: s2
       node: docker1
       run: |
-        echo Hello from Docker
+        echo Hello from Local
         ls

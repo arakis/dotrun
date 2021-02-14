@@ -1,0 +1,12 @@
+kind: workflow
+
+jobs:
+
+  job1:
+    steps:
+
+    - name: s1
+      node: local
+      run: |
+        echo Hello from Local
+        dir
