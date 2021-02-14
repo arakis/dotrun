@@ -43,6 +43,8 @@ namespace DotRun.Runtime
             cfg.ConfigDirectory = new DirectoryInfo(configDirectory).FullName;
             cfg.ConfigFile = configFilePath;
             cfg.Content = content;
+            if (string.IsNullOrEmpty(cfg.ProjectsRootDirectory))
+                cfg.ProjectsRootDirectory = cfg.ConfigDirectory;
 
             return cfg;
         }
@@ -52,7 +54,7 @@ namespace DotRun.Runtime
         public string ConfigDirectory { get; internal set; }
         public string ConfigFile { get; internal set; }
         public string Content { get; internal set; }
-        public string ProjectsRootDirectory => ConfigDirectory;
+        public string ProjectsRootDirectory { get; set; }
 
         private ProjectsCollection _Projects;
         public ProjectsCollection Projects
