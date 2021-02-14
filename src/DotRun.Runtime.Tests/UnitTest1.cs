@@ -16,6 +16,7 @@ namespace DotRun.Runtime.Tests
         }
 
         [Fact]
+        [Trait("Node", "Local")]
         public async Task Local()
         {
             var result = await Run("proj1", "local");
@@ -23,6 +24,7 @@ namespace DotRun.Runtime.Tests
         }
 
         [Fact]
+        [Trait("Node", "Docker")]
         public async Task Docker()
         {
             var result = await Run("proj1", "docker");
@@ -30,6 +32,7 @@ namespace DotRun.Runtime.Tests
         }
 
         [Fact]
+        [Trait("Node", "Local")]
         public async Task Error()
         {
             var result = await Run("proj1", "error");
