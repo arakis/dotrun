@@ -55,13 +55,8 @@ public class WorkflowExecutor : IWorkflowExecutor
 
             var workflow = _projectResolver.GetWorkflow(project, workflowName);
 
-            // Create run context with DI scope
-            using var scope = _serviceProvider.CreateScope();
-            var runContext = new RunContext
-            {
-                ServiceProvider = scope.ServiceProvider,
-                ServiceScope = scope
-            };
+            // Create run context (it manages its own scope)
+            using var runContext = new RunContext(_serviceProvider);
 
             // Execute workflow with cancellation support
             using (_logger.BeginScope("WorkflowExecution[{WorkflowId}]", Guid.NewGuid()))

@@ -5,34 +5,35 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using DotRun.Runtime.Factories;
 using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime;
 
 public class StepExecutor : IStepExecutor
 {
+    private readonly INodeFactory _nodeFactory;
+    private readonly IShellFactory _shellFactory;
+    private readonly ILogger _logger;
 
     public Step Step { get; private set; }
     public StepContext Context { get; private set; }
-
     public INode Node { get; private set; }
-
     public IShell Shell { get; private set; }
     public ILogger Output { get; private set; }
 
-    public static IStepExecutor Create(Step step, StepContext context)
+    public StepExecutor(
+        Step step,
+        StepContext context,
+        INode node,
+        IShell shell,
+        ILogger logger)
     {
-        var executor = new StepExecutor(step, context);
-        executor.Node = context.WorkflowContext.GetNode(step.Node);
-        executor.Shell = context.Node.CreateShell(step.Shell);
-        executor.Output = new ConsoleOutput();
-        return executor;
-    }
-
-    private StepExecutor(Step step, StepContext context)
-    {
-        Step = step;
-        Context = context;
+        Step = step ?? throw new ArgumentNullException(nameof(step));
+        Context = context ?? throw new ArgumentNullException(nameof(context));
+        Node = node ?? throw new ArgumentNullException(nameof(node));
+        Shell = shell ?? throw new ArgumentNullException(nameof(shell));
+        Output = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public Task<StepResult> Run()
