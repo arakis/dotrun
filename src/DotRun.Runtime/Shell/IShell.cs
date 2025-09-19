@@ -4,13 +4,11 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public interface IShell
 {
-    public interface IShell
-    {
 
-        Task<StepResult> Execute(StepContext context, ILogger output);
-
-    }
+    Task<StepResult> Execute(StepContext context, ILogger output);
 
 }

@@ -7,23 +7,20 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public interface INode : IDisposable, IAsyncDisposable
 {
+    IPlatform Platform { get; }
+    Task<bool> Init();
 
-    public interface INode : IDisposable, IAsyncDisposable
-    {
-        IPlatform Platform { get; }
-        Task<bool> Init();
+    Task WriteFile(StepContext context, string path, Stream source);
+    Task Delete(StepContext context, string path);
 
-        Task WriteFile(StepContext context, string path, Stream source);
-        Task Delete(StepContext context, string path);
+    RunningProcess ExecuteCommand(NodeCommand cmd);
+    Task<string> FindExecutablePath(string executable);
+    Task<string> GetHomeDir();
+    Task<string> GetUserName();
 
-        RunningProcess ExecuteCommand(NodeCommand cmd);
-        Task<string> FindExecutablePath(string executable);
-        Task<string> GetHomeDir();
-        Task<string> GetUserName();
-
-        IShell CreateShell(string name);
-    }
-
+    IShell CreateShell(string name);
 }

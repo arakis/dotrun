@@ -11,23 +11,20 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public abstract class Platform : IPlatform
 {
+    public INode Node { get; private set; }
+    public abstract PlatformType PlatformType { get; }
 
-    public abstract class Platform : IPlatform
+    public Platform(INode node)
     {
-        public INode Node { get; private set; }
-        public abstract PlatformType PlatformType { get; }
-
-        public Platform(INode node)
-        {
-            Node = node;
-        }
-
-        public abstract Task<string> FindExecutablePath(string executable);
-        public abstract Task<string> GetHomeDir();
-        public abstract Task<string> GetUsername();
-        public abstract Task Delete(string path);
+        Node = node;
     }
 
+    public abstract Task<string> FindExecutablePath(string executable);
+    public abstract Task<string> GetHomeDir();
+    public abstract Task<string> GetUsername();
+    public abstract Task Delete(string path);
 }

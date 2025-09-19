@@ -1,0 +1,7 @@
+﻿<Solution>
+  <Project Path="DotRun.Console\DotRun.Console.csproj" />
+  <Project Path="DotRun.Runtime.Tests\DotRun.Runtime.Tests.csproj" Type="Classic C#" />
+  <Project Path="DotRun.Runtime\DotRun.Runtime.csproj" />
+  <Project Path="DotRun.Tests.Runner\DotRun.Tests.Runner.csproj" Type="Classic C#" />
+  <Project Path="DotRun.Web\DotRun.Web.csproj" />
+</Solution>

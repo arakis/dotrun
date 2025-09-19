@@ -6,13 +6,10 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class Variable
 {
-
-    public class Variable
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-    }
-
+    public string Name { get; set; }
+    public string Value { get; set; }
 }

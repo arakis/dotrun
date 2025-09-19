@@ -6,45 +6,42 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class Job
 {
+    public Workflow Workflow { get; init; }
 
-    public class Job
+    [JsonProperty]
+    public List<Step> Steps { get; internal set; } = new List<Step>();
+
+    public string Name { get; set; }
+
+    private IList<Job> _Jobs;
+
+    [JsonIgnore]
+    public IList<Job> Jobs
     {
-        public Workflow Workflow { get; init; }
-
-        [JsonProperty]
-        public List<Step> Steps { get; internal set; } = new List<Step>();
-
-        public string Name { get; set; }
-
-        private IList<Job> _Jobs;
-
-        [JsonIgnore]
-        public IList<Job> Jobs
+        get
         {
-            get
-            {
-                if (_Jobs == null)
-                    _Jobs = JobsDict.Values.ToList();
-                return _Jobs;
-            }
+            if (_Jobs == null)
+                _Jobs = JobsDict.Values.ToList();
+            return _Jobs;
         }
+    }
 
-        [JsonProperty("jobs")]
-        internal Dictionary<string, Job> JobsDict { get; set; } = new Dictionary<string, Job>();
+    [JsonProperty("jobs")]
+    internal Dictionary<string, Job> JobsDict { get; set; } = new Dictionary<string, Job>();
 
-        [JsonProperty("max-parallel")]
-        public int MaxParallel { get; set; } = 1;
+    [JsonProperty("max-parallel")]
+    public int MaxParallel { get; set; } = 1;
 
-        internal void Init()
-        {
-            foreach (var entry in JobsDict)
-                entry.Value.Name = entry.Key;
+    internal void Init()
+    {
+        foreach (var entry in JobsDict)
+            entry.Value.Name = entry.Key;
 
-            this.Validate();
-        }
-
+        this.Validate();
     }
 
 }

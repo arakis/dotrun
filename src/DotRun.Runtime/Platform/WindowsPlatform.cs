@@ -11,70 +11,67 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class WindowsPlatform : Platform
 {
-
-    public class WindowsPlatform : Platform
+    public WindowsPlatform(INode node) : base(node)
     {
-        public WindowsPlatform(INode node) : base(node)
+    }
+
+    public override PlatformType PlatformType => PlatformType.Windows;
+
+    public override async Task<string> FindExecutablePath(string executable)
+    {
+        var output = new MemoryOutput();
+        await Node.ExecuteCommand(new NodeCommand
         {
-        }
+            FileName = "cmd.exe",
+            Arguments = new string[] { "/c", "where " + executable },
+            Output = output,
+        }).CompletedTask;
 
-        public override PlatformType PlatformType => PlatformType.Windows;
+        return output.InfoLines.FirstOrDefault();
+    }
 
-        public override async Task<string> FindExecutablePath(string executable)
-        {
-            var output = new MemoryOutput();
-            await Node.ExecuteCommand(new NodeCommand
-            {
-                FileName = "cmd.exe",
-                Arguments = new string[] { "/c", "where " + executable },
-                Output = output,
-            }).CompletedTask;
+    public override Task<string> GetHomeDir()
+    {
+        throw new NotImplementedException();
+    }
 
-            return output.InfoLines.FirstOrDefault();
-        }
+    public override Task<string> GetUsername()
+    {
+        throw new NotImplementedException();
+    }
 
-        public override Task<string> GetHomeDir()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<string> GetUsername()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task Delete(string path)
-        {
-            if (!path.IsSet())
-                return;
-
-            path = path.Replace("/", "\\");
-
-            // avoid accident
-            if (path == "\\")
-                return;
-
-            var output = new MemoryOutput();
-
-            await Node.ExecuteCommand(new NodeCommand
-            {
-                FileName = "cmd.exe",
-                Arguments = new string[] { "/c", $"del /s /q {path}" },
-                Output = output,
-            }).CompletedTask;
-
-            await Node.ExecuteCommand(new NodeCommand
-            {
-                FileName = "cmd.exe",
-                Arguments = new string[] { "/c", $"rmdir /s /q {path}" },
-                Output = output,
-            }).CompletedTask;
-
+    public override async Task Delete(string path)
+    {
+        if (!path.IsSet())
             return;
-        }
 
+        path = path.Replace("/", "\\");
+
+        // avoid accident
+        if (path == "\\")
+            return;
+
+        var output = new MemoryOutput();
+
+        await Node.ExecuteCommand(new NodeCommand
+        {
+            FileName = "cmd.exe",
+            Arguments = new string[] { "/c", $"del /s /q {path}" },
+            Output = output,
+        }).CompletedTask;
+
+        await Node.ExecuteCommand(new NodeCommand
+        {
+            FileName = "cmd.exe",
+            Arguments = new string[] { "/c", $"rmdir /s /q {path}" },
+            Output = output,
+        }).CompletedTask;
+
+        return;
     }
 
 }

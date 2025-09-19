@@ -5,24 +5,21 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class NullOutput : ILogger
 {
-
-    public class NullOutput : ILogger
+    public IDisposable BeginScope<TState>(TState state)
     {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return null;
-        }
-
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return false;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-        }
+        return null;
     }
 
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return false;
+    }
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+    }
 }

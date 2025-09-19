@@ -4,15 +4,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class RunningProcess
 {
-
-    public class RunningProcess
-    {
-        public Task<ProcessResult> CompletedTask { get; set; }
-        public Task<bool> StartedTask { get; set; }
-        public Task StartedOutput { get; set; }
-        public CancellationTokenSource CancellationTokenSource { get; set; }
-    }
-
+    public Task<ProcessResult> CompletedTask { get; set; }
+    public Task<bool> StartedTask { get; set; }
+    public Task StartedOutput { get; set; }
+    public CancellationTokenSource CancellationTokenSource { get; set; }
 }

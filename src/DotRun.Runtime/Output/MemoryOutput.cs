@@ -6,35 +6,32 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class MemoryOutput : Output
 {
 
-    public class MemoryOutput : Output
+    public List<LogEntry<object>> Items { get; } = new List<LogEntry<object>>();
+    internal IEnumerable<LogEntry<object>> InfoItems { get; private set; }
+    internal IEnumerable<LogEntry<object>> ErrorItems { get; private set; }
+
+    public MemoryOutput()
     {
-
-        public List<LogEntry<object>> Items { get; } = new List<LogEntry<object>>();
-        internal IEnumerable<LogEntry<object>> InfoItems { get; private set; }
-        internal IEnumerable<LogEntry<object>> ErrorItems { get; private set; }
-
-        public MemoryOutput()
-        {
-            InfoItems = Items.Where(x => x.LogLevel == LogLevel.Information);
-            ErrorItems = Items.Where(x => x.LogLevel == LogLevel.Error);
-        }
-
-        public List<string> InfoLines { get; } = new List<string>();
-        public List<string> ErrorLines { get; } = new List<string>();
-
-        public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, System.Exception exception, System.Func<TState, System.Exception, string> formatter)
-        {
-            Items.Add(new LogEntry<object>(logLevel, null, eventId, state, exception, (st, ex) => formatter((TState)st, ex)));
-
-            var msg = formatter(state, exception);
-            if (logLevel == LogLevel.Error)
-                ErrorLines.Add(msg);
-            else
-                InfoLines.Add(msg);
-        }
+        InfoItems = Items.Where(x => x.LogLevel == LogLevel.Information);
+        ErrorItems = Items.Where(x => x.LogLevel == LogLevel.Error);
     }
 
+    public List<string> InfoLines { get; } = new List<string>();
+    public List<string> ErrorLines { get; } = new List<string>();
+
+    public override void Log<TState>(LogLevel logLevel, EventId eventId, TState state, System.Exception exception, System.Func<TState, System.Exception, string> formatter)
+    {
+        Items.Add(new LogEntry<object>(logLevel, null, eventId, state, exception, (st, ex) => formatter((TState)st, ex)));
+
+        var msg = formatter(state, exception);
+        if (logLevel == LogLevel.Error)
+            ErrorLines.Add(msg);
+        else
+            InfoLines.Add(msg);
+    }
 }

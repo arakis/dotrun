@@ -5,19 +5,17 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+internal class TempFile : IDisposable
 {
 
-    internal class TempFile : IDisposable
+    public string FilePath { get; init; }
+
+    public void Dispose()
     {
-
-        public string FilePath { get; init; }
-
-        public void Dispose()
-        {
-            if (File.Exists(FilePath))
-                File.Delete(FilePath);
-        }
-
+        if (File.Exists(FilePath))
+            File.Delete(FilePath);
     }
+
 }

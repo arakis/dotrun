@@ -4,20 +4,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class JobResult
 {
+    public Job Job { get; private set; }
+    public IList<StepResult> StepResults { get; set; } = new List<StepResult>();
 
-    public class JobResult
+    public bool Failed => StepResults.Any(x => x.Failed);
+
+    public JobResult(JobContext context)
     {
-        public Job Job { get; private set; }
-        public IList<StepResult> StepResults { get; set; } = new List<StepResult>();
-
-        public bool Failed => StepResults.Any(x => x.Failed);
-
-        public JobResult(JobContext context)
-        {
-            Job = context.Job;
-        }
+        Job = context.Job;
     }
-
 }

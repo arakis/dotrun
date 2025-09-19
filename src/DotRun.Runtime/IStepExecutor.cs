@@ -4,17 +4,15 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
-{
-    public interface IStepExecutor
-    {
-        public Step Step { get; }
-        public StepContext Context { get; }
-        public INode Node { get; }
-        public IShell Shell { get; }
-        public ILogger Output { get; }
-        public void Abort();
-        public Task<StepResult> Run();
-    }
+namespace DotRun.Runtime;
 
+public interface IStepExecutor
+{
+    public Step Step { get; }
+    public StepContext Context { get; }
+    public INode Node { get; }
+    public IShell Shell { get; }
+    public ILogger Output { get; }
+    public void Abort();
+    public Task<StepResult> Run();
 }

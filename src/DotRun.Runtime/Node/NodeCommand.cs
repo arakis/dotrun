@@ -7,17 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
-{
-    public class NodeCommand
-    {
-        public WorkflowContext Context;
-        public string FileName;
-        public IEnumerable<string> Arguments;
-        public Dictionary<string, string> Env = new Dictionary<string, string>();
-        public ILogger Output;
-        public string WorkDirectory;
-        public TimeSpan Timeout;
-    }
+namespace DotRun.Runtime;
 
+public class NodeCommand
+{
+    public WorkflowContext Context;
+    public string FileName;
+    public IEnumerable<string> Arguments;
+    public Dictionary<string, string> Env = new Dictionary<string, string>();
+    public ILogger Output;
+    public string WorkDirectory;
+    public TimeSpan Timeout;
 }

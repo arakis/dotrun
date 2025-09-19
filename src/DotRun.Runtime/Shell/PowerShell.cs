@@ -7,43 +7,41 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class PowerShell : IShell
 {
-    public class PowerShell : IShell
+
+    private async Task<string> DetectPowerShell(StepContext context)
     {
+        var pwsh = await context.Node.FindExecutablePath("pwsh");
+        if (pwsh.IsSet())
+            return "pwsh.exe";
+        else
+            return "powershell.exe";
+    }
 
-        private async Task<string> DetectPowerShell(StepContext context)
+    public async Task<StepResult> Execute(StepContext context, ILogger output)
+    {
+        var command = context.Step.Run;
+        using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
+        var tmpScriptPath = "/tmp/script-" + StringHelper.RandomString() + ".ps1";
+        await context.Node.WriteFile(context, tmpScriptPath, ms);
+        var result = await context.Node.ExecuteCommand(new NodeCommand
         {
-            var pwsh = await context.Node.FindExecutablePath("pwsh");
-            if (pwsh.IsSet())
-                return "pwsh.exe";
-            else
-                return "powershell.exe";
-        }
+            Context = context.WorkflowContext,
+            FileName = await DetectPowerShell(context),
+            Arguments = new string[] { tmpScriptPath },
+            Output = output,
+            Timeout = TimeSpan.MaxValue,
+        }).CompletedTask;
+        await context.Node.Delete(context, tmpScriptPath);
 
-        public async Task<StepResult> Execute(StepContext context, ILogger output)
+        return new StepResult(context)
         {
-            var command = context.Step.Run;
-            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(command));
-            var tmpScriptPath = "/tmp/script-" + StringHelper.RandomString() + ".ps1";
-            await context.Node.WriteFile(context, tmpScriptPath, ms);
-            var result = await context.Node.ExecuteCommand(new NodeCommand
-            {
-                Context = context.WorkflowContext,
-                FileName = await DetectPowerShell(context),
-                Arguments = new string[] { tmpScriptPath },
-                Output = output,
-                Timeout = TimeSpan.MaxValue,
-            }).CompletedTask;
-            await context.Node.Delete(context, tmpScriptPath);
-
-            return new StepResult(context)
-            {
-                Failed = !result.Completed || (result.ExitCode != null && result.ExitCode != 0),
-                ExitCode = result.ExitCode,
-            };
-        }
-
+            Failed = !result.Completed || (result.ExitCode != null && result.ExitCode != 0),
+            ExitCode = result.ExitCode,
+        };
     }
 
 }

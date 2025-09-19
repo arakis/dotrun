@@ -4,18 +4,16 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class WorkflowResult
 {
-    public class WorkflowResult
+    public Workflow Workflow { get; private set; }
+    public IList<JobResult> JobResults { get; set; } = new List<JobResult>();
+    public bool Failed => JobResults.Any(x => x.Failed);
+
+    public WorkflowResult(WorkflowContext context)
     {
-        public Workflow Workflow { get; private set; }
-        public IList<JobResult> JobResults { get; set; } = new List<JobResult>();
-        public bool Failed => JobResults.Any(x => x.Failed);
-
-        public WorkflowResult(WorkflowContext context)
-        {
-            Workflow = context.Workflow;
-        }
+        Workflow = context.Workflow;
     }
-
 }

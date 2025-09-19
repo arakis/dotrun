@@ -3,11 +3,9 @@
 
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
-{
-    public interface IUseAction
-    {
-        Task Run();
-    }
+namespace DotRun.Runtime;
 
+public interface IUseAction
+{
+    Task Run();
 }

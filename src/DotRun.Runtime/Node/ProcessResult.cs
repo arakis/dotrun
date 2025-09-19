@@ -4,12 +4,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
-{
-    public class ProcessResult
-    {
-        public bool Completed;
-        public int? ExitCode;
-    }
+namespace DotRun.Runtime;
 
+public class ProcessResult
+{
+    public bool Completed;
+    public int? ExitCode;
 }

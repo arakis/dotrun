@@ -6,25 +6,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public abstract class Output : ILogger
 {
-
-    public abstract class Output : ILogger
+    public IDisposable BeginScope<TState>(TState state)
     {
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return null;
-        }
+        return null;
+    }
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
 
-        public virtual void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-        }
-
+    public virtual void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
     }
 
 }

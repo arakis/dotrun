@@ -7,13 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotRun.Runtime
+namespace DotRun.Runtime;
+
+public class SecretsInfo
 {
-
-    public class SecretsInfo
-    {
-        public string Kind { get; set; }
-        public List<Secret> Secrets { get; set; }
-    }
-
+    public string Kind { get; set; }
+    public List<Secret> Secrets { get; set; }
 }
