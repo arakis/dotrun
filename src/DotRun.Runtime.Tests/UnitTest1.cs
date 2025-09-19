@@ -12,7 +12,7 @@ public class UnitTest1
         var binDir = Path.GetDirectoryName(new FileInfo(typeof(UnitTest1).Assembly.Location).FullName);
         var cfgFile = Path.Combine(binDir, "Configuration", "config.yaml");
         var cfg = DotRunConfig.FromFile(cfgFile);
-        return await cfg.Projects[project].Workflows[job].Run();
+        return await cfg.Projects[project].Workflows[job].Run(new RunContext());
     }
 
     [Fact]

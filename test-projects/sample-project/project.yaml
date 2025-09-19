@@ -1,0 +1,8 @@
+Name: sample-project
+Workflows:
+  - Name: test-workflow
+    Jobs:
+      - Name: test-job
+        Steps:
+          - Name: Hello World
+            Run: echo "Hello from DotRun with Dependency Injection!"

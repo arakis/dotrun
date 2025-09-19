@@ -1,45 +1,82 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DotRun.Runtime;
-using System.Linq;
+using CommandLine;
+using DotRun.Runtime.Configuration;
+using DotRun.Runtime.Extensions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace DotRun.Console;
 
 class Program
 {
-    static async Task Main(string[] args)
+    static async Task<int> Main(string[] args)
     {
-        System.Console.WriteLine("Init DotRun");
+        return await Parser.Default.ParseArguments<CommandLineOptions>(args)
+            .MapResult(
+                async options => await RunHostAsync(options, args),
+                errors => Task.FromResult((int)ExitCode.InvalidArguments));
+    }
 
-        string cfgFile = null;
-
-        var idx = Array.IndexOf(args, "--config-file");
-        if (idx > -1 && idx + 1 < args.Length)
-            cfgFile = args[idx + 1];
-
-        if (cfgFile == null)
+    private static async Task<int> RunHostAsync(CommandLineOptions options, string[] args)
+    {
+        try
         {
-            System.Console.WriteLine("Please specify --config-file");
-            return;
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                    config.AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", 
+                        optional: true, reloadOnChange: false);
+                    config.AddEnvironmentVariables(prefix: "DOTRUN_");
+                    config.AddCommandLine(args);
+                })
+                .ConfigureServices((hostContext, services) =>
+                {
+                    // Configure options
+                    services.Configure<DotRunOptions>(dotRunOptions =>
+                    {
+                        dotRunOptions.ConfigFile = options.ConfigFile;
+                        dotRunOptions.Project = options.Project;
+                        dotRunOptions.Workflow = options.Workflow;
+                        dotRunOptions.LogLevel = options.LogLevel;
+                        dotRunOptions.TimeoutSeconds = options.Timeout;
+                        dotRunOptions.DryRun = options.DryRun;
+                        dotRunOptions.WorkingDirectory = options.WorkingDirectory;
+                    });
+
+                    // Add DotRun services
+                    services.AddDotRunServices();
+
+                    // Add hosted service
+                    services.AddHostedService<DotRunHostedService>();
+                })
+                .ConfigureLogging((hostContext, logging) =>
+                {
+                    logging.ClearProviders();
+                    logging.AddConsole();
+                    logging.SetMinimumLevel(options.LogLevel);
+                    
+                    // Configure console logging format
+                    logging.AddSimpleConsole(consoleOptions =>
+                    {
+                        consoleOptions.IncludeScopes = true;
+                        consoleOptions.SingleLine = false;
+                        consoleOptions.TimestampFormat = "HH:mm:ss ";
+                    });
+                })
+                .UseConsoleLifetime()
+                .Build();
+
+            await host.RunAsync();
+            return Environment.ExitCode;
         }
-
-        var cfg = DotRunConfig.FromFile(cfgFile);
-
-        string cfgProject = null;
-        idx = Array.IndexOf(args, "--project");
-        if (idx > -1 && idx + 1 < args.Length)
-            cfgProject = args[idx + 1];
-
-        string cfgWorkflow = null;
-        idx = Array.IndexOf(args, "--workflow");
-        if (idx > -1 && idx + 1 < args.Length)
-            cfgWorkflow = args[idx + 1];
-
-        var runContext = new RunContext
+        catch (Exception ex)
         {
-        };
-        
-        var result = await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run(runContext);
-        System.Console.WriteLine(result.Failed ? "Failed" : "Done");
+            System.Console.Error.WriteLine($"Fatal error: {ex.Message}");
+            return (int)ExitCode.UnhandledException;
+        }
     }
 }
