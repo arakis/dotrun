@@ -4,6 +4,8 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
+using DotRun.Runtime.Factories;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotRun.Runtime;
 
@@ -12,7 +14,12 @@ public static class StepExtensions
 
     public static Task<StepResult> Run(this Step step, StepContext context)
     {
-        return StepExecutor.Create(step, context).Run();
+        // Get StepExecutorFactory from DI
+        var stepExecutorFactory = context.WorkflowContext.RunContext.ServiceProvider
+            .GetRequiredService<IStepExecutorFactory>();
+        
+        var executor = stepExecutorFactory.CreateStepExecutor(step, context);
+        return executor.Run();
     }
 
     public static void Validate(this Job job)

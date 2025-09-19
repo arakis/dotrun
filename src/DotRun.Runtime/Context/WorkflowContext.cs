@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DotRun.Runtime.Factories;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime;
@@ -34,7 +36,9 @@ public class WorkflowContext
             {
                 if (!Nodes.TryGetValue(name, out var node))
                 {
-                    node = Node.CreateNode(this, nodeModel).Result;
+                    // Use NodeFactory from DI
+                    var nodeFactory = RunContext.ServiceProvider.GetRequiredService<INodeFactory>();
+                    node = nodeFactory.CreateNodeAsync(this, nodeModel).Result;
                     Nodes.Add(name, node);
                 }
 

@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DotRun.Runtime.Runners;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DotRun.Runtime.Services;
@@ -9,13 +11,19 @@ public class WorkflowExecutor : IWorkflowExecutor
 {
     private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IProjectResolver _projectResolver;
+    private readonly IWorkflowRunner _workflowRunner;
+    private readonly IServiceProvider _serviceProvider;
 
     public WorkflowExecutor(
         ILogger<WorkflowExecutor> logger,
-        IProjectResolver projectResolver)
+        IProjectResolver projectResolver,
+        IWorkflowRunner workflowRunner,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
         _projectResolver = projectResolver;
+        _workflowRunner = workflowRunner;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<WorkflowResult> ExecuteAsync(
@@ -47,15 +55,21 @@ public class WorkflowExecutor : IWorkflowExecutor
 
             var workflow = _projectResolver.GetWorkflow(project, workflowName);
 
-            // Create run context
-            var runContext = new RunContext();
+            // Create run context with DI scope
+            using var scope = _serviceProvider.CreateScope();
+            var runContext = new RunContext
+            {
+                ServiceProvider = scope.ServiceProvider,
+                ServiceScope = scope
+            };
 
             // Execute workflow with cancellation support
             using (_logger.BeginScope("WorkflowExecution[{WorkflowId}]", Guid.NewGuid()))
             {
                 _logger.LogDebug("Executing workflow with {JobCount} jobs", workflow.Jobs?.Count ?? 0);
 
-                var workflowTask = workflow.Run(runContext);
+                // Use WorkflowRunner instead of calling workflow.Run directly
+                var workflowTask = _workflowRunner.RunAsync(workflow, runContext);
                 
                 // Handle cancellation
                 var completedTask = await Task.WhenAny(
