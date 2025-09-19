@@ -1,15 +1,8 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
 using DotRun.Database;
-using Microsoft.AspNetCore.Hosting;
+using DotRun.Tests.Helpers;
 using Xunit;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace FarmTool.WebServer.Tests.Integration;
+namespace DotRun.Tests;
 
 public class JobRecordsTests : IntegrationTestBase
 {
@@ -23,7 +16,9 @@ public class JobRecordsTests : IntegrationTestBase
         context.Project.Add(new ProjectRecord
         {
             Id = Guid.NewGuid(),
-            CreatedAt = DateTime.UtcNow,
+            Name = "Test Project",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
         });
         DbHelper.SaveAndReloadContext(ref context);
     }

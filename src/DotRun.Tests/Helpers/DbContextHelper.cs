@@ -1,7 +1,7 @@
 using DotRun.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace  DotRun;
+namespace DotRun.Tests.Helpers;
 
 public class DbContextHelper
 {
