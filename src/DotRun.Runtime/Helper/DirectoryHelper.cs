@@ -24,10 +24,10 @@ public static class DirectoryHelper
         return new TempFile { FilePath = randomPath };
     }
 
-    public static string GetAbsoluteLocalPath(string path)
+    public static string GetAbsoluteLocalPath(string path, string? currentWorkingDirectory = null)
     {
         if (string.IsNullOrEmpty(path) || path == "." || path == "./" || path == "./")
-            return Environment.CurrentDirectory;
+            return currentWorkingDirectory ?? Environment.CurrentDirectory;
 
         if (path.StartsWith("~/") || path.StartsWith("~\\"))
             path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), path.Substring(2));

@@ -10,7 +10,6 @@ namespace DotRun.Runtime;
 
 public class DotRunConfig
 {
-
     //internal static DotRunConfig Load()
     //{
 
@@ -45,10 +44,14 @@ public class DotRunConfig
         if (string.IsNullOrEmpty(cfg.ProjectsRootDirectory))
             cfg.ProjectsRootDirectory = cfg.ConfigDirectory;
 
+        cfg.ProjectsRootDirectory = DirectoryHelper.GetAbsoluteLocalPath(cfg.ProjectsRootDirectory, cfg.ConfigDirectory);
+
         return cfg;
     }
 
-    private DotRunConfig() { }
+    private DotRunConfig()
+    {
+    }
 
     public string ConfigDirectory { get; internal set; }
     public string ConfigFile { get; internal set; }
@@ -56,6 +59,7 @@ public class DotRunConfig
     public string ProjectsRootDirectory { get; set; }
 
     private ProjectsCollection _Projects;
+
     public ProjectsCollection Projects
     {
         get
@@ -87,6 +91,7 @@ public class DotRunConfig
     }
 
     private List<Secret> _Secrets;
+
     public List<Secret> Secrets
     {
         get
@@ -101,5 +106,4 @@ public class DotRunConfig
     {
         return Secrets.FirstOrDefault(s => s.Name?.ToLower() == name);
     }
-
 }

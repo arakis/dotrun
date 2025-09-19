@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/home/sebastian/dotrun.config/**)",
+      "Read(/home/sebastian/dotrun.config/**)",
+      "Read(/home/sebastian/dotrun.config/projects/**)",
+      "Read(/home/sebastian/dotrun.config/projects/proj1/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
