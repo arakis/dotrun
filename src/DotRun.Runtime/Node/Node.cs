@@ -42,7 +42,7 @@ public abstract class Node : INode
                 throw new Exception("Invalid node type");
         }
 
-        if (!(await node.Init()))
+        if (!await node.Init())
             throw new Exception("Error");
 
         return node;

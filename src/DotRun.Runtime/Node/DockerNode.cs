@@ -39,7 +39,7 @@ public class DockerNode : Node
         using var tempFile = await DirectoryHelper.WriteStreamToTempFile(source);
 
         if (path.StartsWith("~"))
-            path = (await GetHomeDir()) + path.Substring(1);
+            path = await GetHomeDir() + path.Substring(1);
 
         InternalOutput.LogInformation("Writing file " + path);
 
