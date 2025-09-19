@@ -106,7 +106,7 @@ public abstract class Node : INode
         foreach (var arg in cmd.Arguments)
             startInfo.ArgumentList.Add(arg);
 
-        var process = new Process()
+        var process = new Process
         {
             StartInfo = startInfo,
         };
