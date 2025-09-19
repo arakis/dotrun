@@ -4,5 +4,6 @@
   <Project Path="DotRun.Runtime.Tests\DotRun.Runtime.Tests.csproj" Type="Classic C#" />
   <Project Path="DotRun.Runtime\DotRun.Runtime.csproj" />
   <Project Path="DotRun.Tests.Runner\DotRun.Tests.Runner.csproj" Type="Classic C#" />
+  <Project Path="DotRun.Tests\DotRun.Tests.csproj" Type="Classic C#" />
   <Project Path="DotRun.Web\DotRun.Web.csproj" />
 </Solution>

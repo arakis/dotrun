@@ -54,7 +54,7 @@ public class SshNode : Node
 
         public void OnReceive(object sender, EventArgs e)
         {
-            var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+            var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public)!;
             var rawData = (byte[])dataProp.GetValue(e);
             var data = Encoding.ASCII.GetString(rawData);
             Output.LogProcessStandartOutput(data);
@@ -76,10 +76,10 @@ public class SshNode : Node
 
         public void OnReceive(object sender, EventArgs e)
         {
-            var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+            var dataProp = e.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public)!;
             var rawData = (byte[])dataProp.GetValue(e);
 
-            var dataProp2 = e.GetType().GetProperty("DataTypeCode", BindingFlags.Instance | BindingFlags.Public);
+            var dataProp2 = e.GetType().GetProperty("DataTypeCode", BindingFlags.Instance | BindingFlags.Public)!;
             var rawDataTypeCode = (uint)dataProp2.GetValue(e);
 
             if (rawDataTypeCode == 1)
@@ -103,10 +103,10 @@ public class SshNode : Node
 
         // hacky: https://stackoverflow.com/questions/37059305/c-sharp-streamreader-readline-returning-null-before-end-of-stream
         var result = command.BeginExecute();
-        var channelField = command.GetType().GetField("_channel", BindingFlags.Instance | BindingFlags.NonPublic);
-        var channel = channelField.GetValue(command);
-        var receivedEvent = channel.GetType().GetEvent("DataReceived", BindingFlags.Instance | BindingFlags.Public);
-        var extendedDataEvent = channel.GetType().GetEvent("ExtendedDataReceived", BindingFlags.Instance | BindingFlags.Public);
+        var channelField = command.GetType().GetField("_channel", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var channel = channelField.GetValue(command)!;
+        var receivedEvent = channel.GetType().GetEvent("DataReceived", BindingFlags.Instance | BindingFlags.Public)!;
+        var extendedDataEvent = channel.GetType().GetEvent("ExtendedDataReceived", BindingFlags.Instance | BindingFlags.Public)!;
 
         using var handler = new ReceivedHandler(cmd.Output);
         using var handler2 = new ExtendedReceivedHandler(cmd.Output);
