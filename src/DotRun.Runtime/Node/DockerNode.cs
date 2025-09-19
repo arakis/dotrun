@@ -15,7 +15,6 @@ namespace DotRun.Runtime
 {
     public class DockerNode : Node
     {
-
         public DockerNode(WorkflowContext context, NodeModel model)
             : base(context, model)
         {
@@ -54,7 +53,6 @@ namespace DotRun.Runtime
 
         public override RunningProcess ExecuteCommand(NodeCommand cmd)
         {
-
             var args = new List<string>();
             args.Add("exec");
             args.Add("-i");
@@ -91,25 +89,38 @@ namespace DotRun.Runtime
             }
         }
 
-        private DockerClient Client;
+        private DockerClient _client;
+
         public override async Task<bool> Init()
         {
-            Client = new DockerClientConfiguration().CreateClient();
+            _client = new DockerClientConfiguration().CreateClient();
 
             ContainerName = "dotrun-" + StringHelper.RandomString();
 
-            var r = await Client.Images.ListImagesAsync(new ImagesListParameters { MatchName = ImageName });
+            var parameters = new ImagesListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["reference"] = new Dictionary<string, bool>
+                    {
+                        ["ubuntu:latest"] = true
+                    },
+                },
+            };
+
+            var r = await _client.Images.ListImagesAsync(parameters);
             if (r.Count == 0)
             {
-                await Client.Images.CreateImageAsync(new ImagesCreateParameters
-                {
-                    FromImage = ImageName,
-                },
-                null,
-                new Progress());
+                await _client.Images.CreateImageAsync(
+                    new ImagesCreateParameters
+                    {
+                        FromImage = ImageName,
+                    },
+                    null,
+                    new Progress());
             }
 
-            var res = await Client.Containers.CreateContainerAsync(new CreateContainerParameters
+            var res = await _client.Containers.CreateContainerAsync(new CreateContainerParameters
             {
                 Image = ImageName,
                 Name = ContainerName,
@@ -117,15 +128,15 @@ namespace DotRun.Runtime
             });
             ContainerID = res.ID;
 
-            await Client.Containers.StartContainerAsync(ContainerID, new ContainerStartParameters());
+            await _client.Containers.StartContainerAsync(ContainerID, new ContainerStartParameters());
 
             return true;
         }
 
         public override void Dispose()
         {
-            Client?.Dispose();
-            Client = null;
+            _client?.Dispose();
+            _client = null;
             base.Dispose();
         }
 
@@ -133,7 +144,5 @@ namespace DotRun.Runtime
         {
             return Platform.Delete(path);
         }
-
     }
-
 }
