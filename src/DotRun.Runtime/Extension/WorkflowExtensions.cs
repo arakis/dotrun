@@ -11,9 +11,9 @@ namespace DotRun.Runtime;
 public static class WorkflowExtensions
 {
 
-    public static Task<WorkflowResult> Run(this Workflow workflow)
+    public static Task<WorkflowResult> Run(this Workflow workflow, RunContext context)
     {
-        return Run(workflow, new WorkflowContext(workflow));
+        return Run(workflow, new WorkflowContext(workflow, context));
     }
 
     public static async Task<WorkflowResult> Run(this Workflow workflow, WorkflowContext context)

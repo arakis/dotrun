@@ -10,14 +10,17 @@ namespace DotRun.Runtime;
 
 public class WorkflowContext
 {
+    public Workflow Workflow { get; }
+    public RunContext RunContext { get; }
 
-    public Workflow Workflow { get; internal set; }
-    public WorkflowContext(Workflow workflow)
+    public WorkflowContext(Workflow workflow, RunContext runContext)
     {
         Workflow = workflow;
+        RunContext = runContext;
     }
 
     private Dictionary<string, INode> Nodes = new Dictionary<string, INode>();
+
     public INode GetNode(string name)
     {
         name = name.ReplaceVariables(this);
@@ -38,9 +41,9 @@ public class WorkflowContext
                 return node;
             }
         }
+
         throw new Exception($"Unable to get node '{name}'");
     }
 
     public ILogger InternalOutput { get; internal set; } = new ConsoleOutput();
-
 }

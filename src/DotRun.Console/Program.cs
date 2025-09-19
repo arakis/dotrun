@@ -35,7 +35,11 @@ class Program
         if (idx > -1 && idx + 1 < args.Length)
             cfgWorkflow = args[idx + 1];
 
-        var result = await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run();
+        var runContext = new RunContext
+        {
+        };
+        
+        var result = await cfg.Projects[cfgProject].Workflows[cfgWorkflow].Run(runContext);
         System.Console.WriteLine(result.Failed ? "Failed" : "Done");
     }
 }
