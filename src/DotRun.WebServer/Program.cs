@@ -1,11 +1,20 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using DotRun.WebServer;
 using DotRun.Database.Extensions;
+using DotRun.WebServer.Services;
+using DotRun.Runtime.Services.V2;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDotRunDatabase();
+
+// Add DotRun configuration service
+builder.Services.AddSingleton<IDotRunConfigService, DotRunConfigService>();
+
+// Ensure IWorkflowResolver is registered (if not already in AddDotRunDatabase)
+// Note: AddDotRunDatabase already registers IWorkflowResolver as Scoped
+// builder.Services.AddScoped<IWorkflowResolver, WorkflowResolver>();
 
 builder.Services.AddControllersWithViews(options =>
 {
