@@ -13,25 +13,26 @@ public class WorkflowEntityTests : IntegrationTestBase
         DotRunDbContext context = DbHelper.CreateDbContext();
 
         // Add test data
-        var project = new ProjectEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Project",
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-        context.Project.Add(project);
-        
         context.Workflow.Add(new WorkflowEntity
         {
             Id = Guid.NewGuid(),
-            ProjectId = project.Id,
             Name = "Test Workflow",
             Slug = "test-workflow",
+            QualifiedPath = "test/workflow",
+            YamlFilePath = "/test/workflow.yaml",
+            SourceHash = "hash123",
             CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
+            UpdatedAt = DateTimeOffset.UtcNow,
+            DeactivatedAt = null
         });
         
         DbHelper.SaveAndReloadContext(ref context);
+        
+        // Assert
+        var workflow = context.Workflow.FirstOrDefault();
+        Assert.NotNull(workflow);
+        Assert.Equal("Test Workflow", workflow.Name);
+        Assert.Equal("test/workflow", workflow.QualifiedPath);
+        Assert.Null(workflow.DeactivatedAt);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using DotRun.Database.Extensions;
 using DotRun.Runtime.Extensions;
 using DotRun.Runtime.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,9 @@ public class UnitTest1 : IDisposable
         
         // Add DotRun services
         services.AddDotRunServices();
+        
+        // Add DotRun database services
+        services.AddDotRunDatabase();
         
         // Build service provider
         _serviceProvider = services.BuildServiceProvider();

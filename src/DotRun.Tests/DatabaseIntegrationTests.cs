@@ -7,56 +7,24 @@ namespace DotRun.Tests;
 public class DatabaseIntegrationTests : IntegrationTestBase
 {
     [Fact]
-    public async Task CanCreateAndQueryProject()
+    public async Task CanCreateAndQueryWorkflow()
     {
         // Arrange
         await using var context = CreateDbContext();
-        var project = new ProjectEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Project",
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-        
-        // Act
-        context.Project.Add(project);
-        await context.SaveChangesAsync();
-        
-        // Assert
-        await using var queryContext = CreateDbContext();
-        var savedProject = await queryContext.Project.FindAsync(project.Id);
-        
-        Assert.NotNull(savedProject);
-        Assert.Equal("Test Project", savedProject.Name);
-    }
-    
-    [Fact]
-    public async Task CanCreateWorkflowWithRelationships()
-    {
-        // Arrange
-        await using var context = CreateDbContext();
-        
-        var project = new ProjectEntity
-        {
-            Id = Guid.NewGuid(),
-            Name = "Project with Workflow",
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-        
         var workflow = new WorkflowEntity
         {
             Id = Guid.NewGuid(),
-            ProjectId = project.Id,
             Name = "Test Workflow",
-            Project = project,
+            Slug = "test-workflow",
+            QualifiedPath = "test/workflow",
+            YamlFilePath = "/test/workflow.yaml",
+            SourceHash = "hash123",
             CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
+            UpdatedAt = DateTimeOffset.UtcNow,
+            DeactivatedAt = null
         };
         
         // Act
-        context.Project.Add(project);
         context.Workflow.Add(workflow);
         await context.SaveChangesAsync();
         
@@ -66,17 +34,68 @@ public class DatabaseIntegrationTests : IntegrationTestBase
         
         Assert.NotNull(savedWorkflow);
         Assert.Equal("Test Workflow", savedWorkflow.Name);
-        Assert.Equal(project.Id, savedWorkflow.ProjectId);
+        Assert.Equal("test/workflow", savedWorkflow.QualifiedPath);
+        Assert.Null(savedWorkflow.DeactivatedAt);
+    }
+    
+    [Fact]
+    public async Task CanDeactivateAndReactivateWorkflow()
+    {
+        // Arrange
+        await using var context = CreateDbContext();
+        
+        var workflow = new WorkflowEntity
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Workflow",
+            Slug = "test-workflow",
+            QualifiedPath = "test/workflow",
+            YamlFilePath = "/test/workflow.yaml",
+            SourceHash = "hash123",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            DeactivatedAt = null
+        };
+        
+        // Act - Create active workflow
+        context.Workflow.Add(workflow);
+        await context.SaveChangesAsync();
+        
+        // Deactivate workflow
+        workflow.DeactivatedAt = DateTimeOffset.UtcNow;
+        await context.SaveChangesAsync();
+        
+        // Assert - Check deactivation
+        await using var queryContext1 = CreateDbContext();
+        var deactivatedWorkflow = await queryContext1.Workflow.FindAsync(workflow.Id);
+        Assert.NotNull(deactivatedWorkflow);
+        Assert.NotNull(deactivatedWorkflow.DeactivatedAt);
+        
+        // Reactivate workflow
+        await using var updateContext = CreateDbContext();
+        var workflowToReactivate = await updateContext.Workflow.FindAsync(workflow.Id);
+        workflowToReactivate.DeactivatedAt = null;
+        await updateContext.SaveChangesAsync();
+        
+        // Assert - Check reactivation
+        await using var queryContext2 = CreateDbContext();
+        var reactivatedWorkflow = await queryContext2.Workflow.FindAsync(workflow.Id);
+        Assert.NotNull(reactivatedWorkflow);
+        Assert.Null(reactivatedWorkflow.DeactivatedAt);
     }
     
     [Fact]
     public async Task DbHelperWorksCorrectly()
     {
         // Arrange
-        var project = new ProjectEntity
+        var workflow = new WorkflowEntity
         {
             Id = Guid.NewGuid(),
-            Name = "Helper Test Project",
+            Name = "Helper Test Workflow",
+            Slug = "helper-test",
+            QualifiedPath = "helper/test",
+            YamlFilePath = "/helper/test.yaml",
+            SourceHash = "hash456",
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
@@ -84,14 +103,14 @@ public class DatabaseIntegrationTests : IntegrationTestBase
         // Act
         using (var context = DbHelper.CreateDbContext())
         {
-            context.Project.Add(project);
+            context.Workflow.Add(workflow);
             await context.SaveChangesAsync();
         }
         
         // Assert
         using (var context = DbHelper.CreateDbContext())
         {
-            var exists = context.Project.Any(p => p.Id == project.Id);
+            var exists = context.Workflow.Any(w => w.Id == workflow.Id);
             Assert.True(exists);
         }
     }

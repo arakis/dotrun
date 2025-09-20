@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotRun.Runtime\DotRun.Runtime.csproj" />
+    <ProjectReference Include="..\DotRun.Database\DotRun.Database.csproj" />
   </ItemGroup>
 
 </Project>
