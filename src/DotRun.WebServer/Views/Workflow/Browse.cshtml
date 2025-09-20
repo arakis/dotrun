@@ -3,8 +3,8 @@
     ViewData["Title"] = "Workflows";
 }
 
-<div class="file-explorer">
-    <nav aria-label="breadcrumb" class="explorer-breadcrumb">
+<div class="page-container">
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
         <ol class="breadcrumb">
             @foreach (var item in Model.BreadcrumbItems)
             {
@@ -22,32 +22,32 @@
         </ol>
     </nav>
 
-    <div class="explorer-container">
+    <div class="content-container">
         @if (!Model.Items.Any())
         {
-            <div class="explorer-empty">
+            <div class="empty-state">
                 <p>No items found</p>
             </div>
         }
         else
         {
-            <div class="explorer-list">
-                <h2 class="explorer-page-title">Workflows</h2>
-                <table class="explorer-table">
+            <div class="list-container">
+                <h2 class="section-title">Workflows</h2>
+                <table class="data-table">
                     <thead>
                         <tr>
-                            <th class="explorer-table-header">Name</th>
-                            <th class="explorer-table-header explorer-table-header-type">Type</th>
-                            <th class="explorer-table-header explorer-table-header-modified">Last modified</th>
+                            <th class="table-header">Name</th>
+                            <th class="table-header table-header-narrow">Type</th>
+                            <th class="table-header table-header-date">Last modified</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model.Items)
                         {
-                            <tr class="explorer-table-row">
-                                <td class="explorer-table-cell explorer-table-name">
-                                    <a href="/workflows/@item.Path" class="explorer-list-link">
-                                        <span class="explorer-list-icon">
+                            <tr class="table-row">
+                                <td class="table-cell table-cell-primary">
+                                    <a href="/workflows/@item.Path" class="item-link">
+                                        <span class="item-icon">
                                             @if (item.IsDirectory)
                                             {
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -62,10 +62,10 @@
                                                 </svg>
                                             }
                                         </span>
-                                        <span class="explorer-list-name">@item.Name</span>
+                                        <span class="item-name">@item.Name</span>
                                     </a>
                                 </td>
-                                <td class="explorer-table-cell explorer-table-type">
+                                <td class="table-cell table-cell-type">
                                     @if (item.IsDirectory)
                                     {
                                         <span>Folder</span>
@@ -75,7 +75,7 @@
                                         <span>Workflow</span>
                                     }
                                 </td>
-                                <td class="explorer-table-cell explorer-table-modified">
+                                <td class="table-cell table-cell-date">
                                     <span>-</span>
                                 </td>
                             </tr>

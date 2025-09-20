@@ -44,44 +44,44 @@ body {
   text-align: start;
 }
 
-/* File Explorer Styles */
-.file-explorer {
+/* Page Layout Styles */
+.page-container {
   padding: 16px 32px;
   max-width: 1280px;
   margin: 0 auto;
 }
 
-.explorer-breadcrumb {
+.breadcrumb-nav {
   margin-bottom: 24px;
 }
 
-.explorer-breadcrumb .breadcrumb {
+.breadcrumb-nav .breadcrumb {
   background-color: transparent;
   padding: 0;
   margin-bottom: 0;
 }
 
-.explorer-breadcrumb .breadcrumb-item {
+.breadcrumb-nav .breadcrumb-item {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
-.explorer-breadcrumb .breadcrumb-link {
+.breadcrumb-nav .breadcrumb-link {
   color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.15s;
 }
 
-.explorer-breadcrumb .breadcrumb-link:hover {
+.breadcrumb-nav .breadcrumb-link:hover {
   color: var(--text-primary);
 }
 
-.explorer-container {
+.content-container {
   background-color: transparent;
   padding: 0;
 }
 
-.explorer-title {
+.page-title {
   color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: 500;
@@ -90,11 +90,11 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.explorer-list {
+.list-container {
   width: 100%;
 }
 
-.explorer-page-title {
+.section-title {
   font-size: 20px;
   font-weight: 400;
   color: #1f2328;
@@ -103,13 +103,13 @@ body {
   border: none;
 }
 
-.explorer-table {
+.data-table {
   width: 100%;
   border-collapse: collapse;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 
-.explorer-table-header {
+.table-header {
   text-align: left;
   padding: 6px 16px;
   font-size: 12px;
@@ -120,34 +120,34 @@ body {
   background-color: #f6f8fa;
 }
 
-.explorer-table-header-type {
+.table-header-narrow {
   width: 120px;
 }
 
-.explorer-table-header-modified {
+.table-header-date {
   width: 150px;
 }
 
-.explorer-table-row {
+.table-row {
   border-bottom: 1px solid #d0d7de;
 }
 
-.explorer-table-row:hover {
+.table-row:hover {
   background-color: #f6f8fa;
 }
 
-.explorer-table-cell {
+.table-cell {
   padding: 8px 16px;
   font-size: 14px;
   color: #57606a;
   vertical-align: middle;
 }
 
-.explorer-table-name {
+.table-cell-primary {
   color: var(--text-primary);
 }
 
-.explorer-list-link {
+.item-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -155,38 +155,38 @@ body {
   color: inherit;
 }
 
-.explorer-list-link:hover .explorer-list-name {
+.item-link:hover .item-name {
   text-decoration: underline;
 }
 
-.explorer-list-icon {
+.item-icon {
   display: inline-flex;
   align-items: center;
 }
 
-.explorer-list-icon svg {
+.item-icon svg {
   color: #656d76;
   vertical-align: text-bottom;
 }
 
-.explorer-list-name {
+.item-name {
   color: var(--text-primary);
   font-weight: 400;
   font-size: 14px;
 }
 
-.explorer-table-type {
+.table-cell-type {
   font-size: 14px;
   color: #57606a;
 }
 
-.explorer-table-modified {
+.table-cell-date {
   font-size: 14px;
   color: #57606a;
   text-align: right;
 }
 
-.explorer-empty {
+.empty-state {
   text-align: center;
   padding: 48px 20px;
   color: var(--text-secondary);
