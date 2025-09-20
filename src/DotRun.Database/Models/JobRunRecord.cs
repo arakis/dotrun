@@ -2,7 +2,7 @@ namespace DotRun.Database;
 
 public record JobRunRecord : RecordBase
 {
-    public Guid JobId { get; set; }
+    public string Name { get; set; }
 
     public Guid WorkflowId { get; set; }
     public Guid WorkflowRunId { get; set; }

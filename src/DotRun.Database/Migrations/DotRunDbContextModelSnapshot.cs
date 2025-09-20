@@ -22,38 +22,6 @@ namespace DotRun.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DotRun.Database.JobRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("Job", (string)null);
-                });
-
             modelBuilder.Entity("DotRun.Database.JobRunRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -69,8 +37,10 @@ namespace DotRun.Database.Migrations
                     b.Property<DateTimeOffset?>("FinishedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTimeOffset?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
@@ -90,8 +60,6 @@ namespace DotRun.Database.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("JobId");
 
                     b.HasIndex("WorkflowRunId");
 
@@ -125,38 +93,6 @@ namespace DotRun.Database.Migrations
                     b.ToTable("Project", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.StepRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobId");
-
-                    b.ToTable("Step", (string)null);
-                });
-
             modelBuilder.Entity("DotRun.Database.StepRunRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -172,20 +108,19 @@ namespace DotRun.Database.Migrations
                     b.Property<DateTimeOffset?>("FinishedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("JobRunId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTimeOffset?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
-
-                    b.Property<Guid>("StepId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -195,8 +130,6 @@ namespace DotRun.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("JobRunId");
-
-                    b.HasIndex("StepId");
 
                     b.ToTable("StepRun", (string)null);
                 });
@@ -269,41 +202,13 @@ namespace DotRun.Database.Migrations
                     b.ToTable("WorkflowRun", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.JobRecord", b =>
-                {
-                    b.HasOne("DotRun.Database.ProjectRecord", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("DotRun.Database.JobRunRecord", b =>
                 {
-                    b.HasOne("DotRun.Database.JobRecord", null)
-                        .WithMany()
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("DotRun.Database.WorkflowRunRecord", null)
                         .WithMany()
                         .HasForeignKey("WorkflowRunId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("DotRun.Database.StepRecord", b =>
-                {
-                    b.HasOne("DotRun.Database.JobRecord", "Job")
-                        .WithMany()
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Job");
                 });
 
             modelBuilder.Entity("DotRun.Database.StepRunRecord", b =>
@@ -312,12 +217,6 @@ namespace DotRun.Database.Migrations
                         .WithMany()
                         .HasForeignKey("JobRunId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DotRun.Database.StepRecord", null)
-                        .WithMany()
-                        .HasForeignKey("StepId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
