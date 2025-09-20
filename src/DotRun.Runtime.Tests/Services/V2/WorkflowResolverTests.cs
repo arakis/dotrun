@@ -45,7 +45,8 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "");
 
         // Assert
-        Assert.Null(result);
+        Assert.Null(result.Workflow);
+        Assert.Null(result.QualifiedPath);
     }
 
     [Fact]
@@ -58,7 +59,8 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, null);
 
         // Assert
-        Assert.Null(result);
+        Assert.Null(result.Workflow);
+        Assert.Null(result.QualifiedPath);
     }
 
     [Fact]
@@ -88,8 +90,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "demo");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("demo", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("demo", result.Workflow.Name);
+        Assert.Equal("demo", result.QualifiedPath);
     }
 
     [Fact]
@@ -121,8 +124,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "local/dev/build");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("build", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("build", result.Workflow.Name);
+        Assert.Equal("local/dev/build", result.QualifiedPath);
     }
 
     [Fact]
@@ -154,8 +158,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "ci/test");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("test", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("test", result.Workflow.Name);
+        Assert.Equal("ci/test", result.QualifiedPath);
     }
 
     [Fact]
@@ -185,8 +190,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "ops/prod/deploy");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("deploy", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("deploy", result.Workflow.Name);
+        Assert.Equal("ops/prod/deploy", result.QualifiedPath);
     }
 
     [Fact]
@@ -226,8 +232,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "unique");
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("unique", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("unique", result.Workflow.Name);
+        Assert.NotNull(result.QualifiedPath);
     }
 
     [Fact]
@@ -268,7 +275,8 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "common");
 
         // Assert
-        Assert.NotNull(result);
+        Assert.NotNull(result.Workflow);
+        Assert.NotNull(result.QualifiedPath);
         // Should log a warning about multiple matches - NSubstitute doesn't have direct Log verification
         // so we just verify the result is not null
     }
@@ -411,7 +419,7 @@ public class WorkflowResolverTests : IDisposable
 
         // Assert - The resolver may find workflows through different paths
         Assert.True(results.Count >= 2);
-        Assert.Contains(results, r => r.Path.Contains("build"));
+        Assert.Contains(results, r => r.QualifiedPath.Contains("build"));
     }
 
     [Fact]
@@ -441,8 +449,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "global"); // No repo prefix needed
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("global", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("global", result.Workflow.Name);
+        Assert.Equal("global", result.QualifiedPath);
     }
 
     [Fact]
@@ -472,8 +481,9 @@ public class WorkflowResolverTests : IDisposable
         var result = _resolver.GetByPath(config, "myrepo/workflow"); // Direct repo access
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("workflow", result.Name);
+        Assert.NotNull(result.Workflow);
+        Assert.Equal("workflow", result.Workflow.Name);
+        Assert.Equal("myrepo/workflow", result.QualifiedPath);
     }
 
     // Helper methods
@@ -486,15 +496,15 @@ public class WorkflowResolverTests : IDisposable
 
     private void CreateWorkflowFile(string directory, string filename)
     {
-        var content = """
-                      kind: workflow
-                      jobs:
-                      test:
-                        steps:
-                          - name: test
-                            node: local
-                            run: echo test
-                      """;
+        var content = @"kind: workflow
+
+jobs:
+  test:
+    steps:
+      - name: test
+        node: local
+        run: echo test
+";
 
         var filePath = Path.Combine(directory, filename);
         File.WriteAllText(filePath, content);

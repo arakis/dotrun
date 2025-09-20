@@ -16,22 +16,22 @@ public class WorkflowResolver : IWorkflowResolver
         _logger = logger;
     }
     
-    public Workflow GetByPath(DotRunConfigV2 config, string workflowPath)
+    public (Workflow Workflow, string QualifiedPath) GetByPath(DotRunConfigV2 config, string workflowPath)
     {
         _logger.LogDebug("Resolving workflow: {WorkflowPath}", workflowPath);
         
         if (string.IsNullOrWhiteSpace(workflowPath))
         {
             _logger.LogError("Workflow path is null or empty");
-            return null;
+            return (null, null);
         }
         
         // Try direct resolution first (fully qualified path)
-        var directWorkflow = TryDirectResolution(config, workflowPath);
-        if (directWorkflow != null)
+        var directResult = TryDirectResolution(config, workflowPath);
+        if (directResult.Workflow != null)
         {
             _logger.LogDebug("Workflow found via direct resolution: {WorkflowPath}", workflowPath);
-            return directWorkflow;
+            return directResult;
         }
         
         // Search all mount points for the workflow
@@ -46,11 +46,11 @@ public class WorkflowResolver : IWorkflowResolver
             
             var result = searchResults.First();
             _logger.LogDebug("Workflow found at {LogicalPath}: {PhysicalPath}", result.LogicalPath, result.PhysicalPath);
-            return result.Workflow;
+            return (result.Workflow, result.LogicalPath);
         }
         
         _logger.LogError("Workflow not found: {WorkflowPath}", workflowPath);
-        return null;
+        return (null, null);
     }
     
     public IEnumerable<string> ListWorkflows(DotRunConfigV2 config)
@@ -87,12 +87,13 @@ public class WorkflowResolver : IWorkflowResolver
     
     public bool ValidateWorkflow(DotRunConfigV2 config, string workflowPath)
     {
-        return GetByPath(config, workflowPath) != null;
+        var result = GetByPath(config, workflowPath);
+        return result.Workflow != null;
     }
     
-    public IEnumerable<(string Path, Workflow Workflow)> FindWorkflows(DotRunConfigV2 config, string workflowName)
+    public IEnumerable<(string QualifiedPath, Workflow Workflow)> FindWorkflows(DotRunConfigV2 config, string workflowName)
     {
-        var results = new List<(string Path, Workflow Workflow)>();
+        var results = new List<(string QualifiedPath, Workflow Workflow)>();
         var searchResults = SearchAllMountPoints(config, workflowName);
         
         foreach (var result in searchResults)
@@ -103,12 +104,12 @@ public class WorkflowResolver : IWorkflowResolver
         return results;
     }
     
-    private Workflow TryDirectResolution(DotRunConfigV2 config, string workflowPath)
+    private (Workflow Workflow, string QualifiedPath) TryDirectResolution(DotRunConfigV2 config, string workflowPath)
     {
         // Parse the workflow path
         var parts = workflowPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0)
-            return null;
+            return (null, null);
             
         // Try to match against known mount points
         foreach (var repo in config.Repositories)
@@ -124,12 +125,18 @@ public class WorkflowResolver : IWorkflowResolver
                     // Try with .yaml and .yml extensions
                     var workflow = TryLoadWorkflow(fullPath + ".yaml") ?? TryLoadWorkflow(fullPath + ".yml");
                     if (workflow != null)
-                        return workflow;
+                    {
+                        // Build the fully qualified path
+                        var qualifiedPath = string.IsNullOrEmpty(logicalPath) 
+                            ? workflowPath 
+                            : workflowPath; // Already qualified
+                        return (workflow, qualifiedPath);
+                    }
                 }
             }
         }
         
-        return null;
+        return (null, null);
     }
     
     private List<(string LogicalPath, string PhysicalPath, Workflow Workflow)> SearchAllMountPoints(
@@ -150,7 +157,20 @@ public class WorkflowResolver : IWorkflowResolver
                 var workflow = TryLoadWorkflow(possiblePath);
                 if (workflow != null)
                 {
-                    var fullLogicalPath = BuildWorkflowPath(logicalPath, workflowName);
+                    // Calculate the relative path from mount point to workflow
+                    var relativePath = Path.GetRelativePath(physicalPath, possiblePath);
+                    var workflowLogicalName = Path.GetFileNameWithoutExtension(relativePath);
+                    var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');
+                    
+                    // Build the fully qualified logical path
+                    var parts = new List<string>();
+                    if (!string.IsNullOrEmpty(logicalPath))
+                        parts.Add(logicalPath);
+                    if (!string.IsNullOrEmpty(workflowDir) && workflowDir != ".")
+                        parts.Add(workflowDir);
+                    parts.Add(workflowLogicalName);
+                    
+                    var fullLogicalPath = string.Join("/", parts);
                     results.Add((fullLogicalPath, possiblePath, workflow));
                 }
             }
