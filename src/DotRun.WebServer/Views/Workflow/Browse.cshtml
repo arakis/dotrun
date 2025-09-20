@@ -33,30 +33,56 @@
         }
         else
         {
-            <div class="explorer-grid">
-                @foreach (var item in Model.Items)
-                {
-                    <a href="/workflows/@item.Path" class="explorer-item">
-                        <div class="explorer-item-icon">
-                            @if (item.IsDirectory)
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                                </svg>
-                            }
-                            else
-                            {
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                </svg>
-                            }
-                        </div>
-                        <div class="explorer-item-name">
-                            @item.Name
-                        </div>
-                    </a>
-                }
+            <div class="explorer-list">
+                <table class="explorer-table">
+                    <thead>
+                        <tr>
+                            <th class="explorer-table-header">Name</th>
+                            <th class="explorer-table-header explorer-table-header-type">Type</th>
+                            <th class="explorer-table-header explorer-table-header-modified">Last modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr class="explorer-table-row">
+                                <td class="explorer-table-cell explorer-table-name">
+                                    <a href="/workflows/@item.Path" class="explorer-list-link">
+                                        <span class="explorer-list-icon">
+                                            @if (item.IsDirectory)
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                                </svg>
+                                            }
+                                            else
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                </svg>
+                                            }
+                                        </span>
+                                        <span class="explorer-list-name">@item.Name</span>
+                                    </a>
+                                </td>
+                                <td class="explorer-table-cell explorer-table-type">
+                                    @if (item.IsDirectory)
+                                    {
+                                        <span>Folder</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Workflow</span>
+                                    }
+                                </td>
+                                <td class="explorer-table-cell explorer-table-modified">
+                                    <span>-</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
     </div>
