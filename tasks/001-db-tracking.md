@@ -23,7 +23,7 @@ public interface IWorkflowTrackingService
     Task CompleteWorkflowRunAsync(Guid runId, ExecutionStatus status);
     
     // Pre-create all execution records
-    Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Workflow workflow);
+    Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, Workflow workflow);
 }
 ```
 
@@ -88,7 +88,7 @@ public class WorkflowTrackingService : IWorkflowTrackingService
         return workflow.Id;
     }
     
-    public async Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Workflow workflow)
+    public async Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, Workflow workflow)
     {
         var jobIds = new Dictionary<string, Guid>();
         
@@ -98,7 +98,7 @@ public class WorkflowTrackingService : IWorkflowTrackingService
             var jobRun = new JobRunEntity
             {
                 WorkflowRunId = workflowRunId,
-                WorkflowId = workflowRunId, // Add this field to track workflow
+                WorkflowId = workflowId, // Now correctly using the workflow entity ID
                 Name = job.Name,
                 Slug = job.Name,
                 Status = ExecutionStatus.Queued
@@ -333,7 +333,7 @@ public class WorkflowExecutor : IWorkflowExecutor
         runContext.WorkflowRunId = workflowRunId;
         
         // Pre-create execution plan (returns job/step IDs)
-        var jobIds = await scopedTracking.CreateExecutionPlanAsync(workflowRunId, workflow);
+        var jobIds = await scopedTracking.CreateExecutionPlanAsync(workflowRunId, workflowId, workflow);
         runContext.JobRunIds = jobIds;
         
         // Also pre-populate step IDs if needed
