@@ -11,7 +11,7 @@ public class DatabaseIntegrationTests : IntegrationTestBase
     {
         // Arrange
         await using var context = CreateDbContext();
-        var project = new ProjectRecord
+        var project = new ProjectEntity
         {
             Id = Guid.NewGuid(),
             Name = "Test Project",
@@ -37,7 +37,7 @@ public class DatabaseIntegrationTests : IntegrationTestBase
         // Arrange
         await using var context = CreateDbContext();
         
-        var project = new ProjectRecord
+        var project = new ProjectEntity
         {
             Id = Guid.NewGuid(),
             Name = "Project with Workflow",
@@ -45,7 +45,7 @@ public class DatabaseIntegrationTests : IntegrationTestBase
             UpdatedAt = DateTimeOffset.UtcNow
         };
         
-        var workflow = new WorkflowRecord
+        var workflow = new WorkflowEntity
         {
             Id = Guid.NewGuid(),
             ProjectId = project.Id,
@@ -73,7 +73,7 @@ public class DatabaseIntegrationTests : IntegrationTestBase
     public async Task DbHelperWorksCorrectly()
     {
         // Arrange
-        var project = new ProjectRecord
+        var project = new ProjectEntity
         {
             Id = Guid.NewGuid(),
             Name = "Helper Test Project",

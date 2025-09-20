@@ -1,6 +1,6 @@
 namespace DotRun.Database;
 
-public record StepRunRecord : RecordBase
+public record StepRunEntity : EntityBase
 {
     public string Name { get; set; }
     

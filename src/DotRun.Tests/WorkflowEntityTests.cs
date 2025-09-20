@@ -4,7 +4,7 @@ using Xunit;
 
 namespace DotRun.Tests;
 
-public class WorkflowRecordTests : IntegrationTestBase
+public class WorkflowEntityTests : IntegrationTestBase
 {
     [Fact]
     public async Task List_ReturnsSuccessStatusCode()
@@ -13,7 +13,7 @@ public class WorkflowRecordTests : IntegrationTestBase
         DotRunDbContext context = DbHelper.CreateDbContext();
 
         // Add test data
-        var project = new ProjectRecord
+        var project = new ProjectEntity
         {
             Id = Guid.NewGuid(),
             Name = "Test Project",
@@ -22,7 +22,7 @@ public class WorkflowRecordTests : IntegrationTestBase
         };
         context.Project.Add(project);
         
-        context.Workflow.Add(new WorkflowRecord
+        context.Workflow.Add(new WorkflowEntity
         {
             Id = Guid.NewGuid(),
             ProjectId = project.Id,

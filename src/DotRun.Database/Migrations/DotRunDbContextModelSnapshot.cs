@@ -22,7 +22,7 @@ namespace DotRun.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DotRun.Database.JobRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.JobRunEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +66,7 @@ namespace DotRun.Database.Migrations
                     b.ToTable("JobRun", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.ProjectRecord", b =>
+            modelBuilder.Entity("DotRun.Database.ProjectEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -93,7 +93,7 @@ namespace DotRun.Database.Migrations
                     b.ToTable("Project", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.StepRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.StepRunEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -134,7 +134,7 @@ namespace DotRun.Database.Migrations
                     b.ToTable("StepRun", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.WorkflowRecord", b =>
+            modelBuilder.Entity("DotRun.Database.WorkflowEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -166,7 +166,7 @@ namespace DotRun.Database.Migrations
                     b.ToTable("Workflow", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.WorkflowRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.WorkflowRunEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -180,6 +180,10 @@ namespace DotRun.Database.Migrations
 
                     b.Property<DateTimeOffset?>("FinishedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
@@ -202,27 +206,27 @@ namespace DotRun.Database.Migrations
                     b.ToTable("WorkflowRun", (string)null);
                 });
 
-            modelBuilder.Entity("DotRun.Database.JobRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.JobRunEntity", b =>
                 {
-                    b.HasOne("DotRun.Database.WorkflowRunRecord", null)
+                    b.HasOne("DotRun.Database.WorkflowRunEntity", null)
                         .WithMany()
                         .HasForeignKey("WorkflowRunId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DotRun.Database.StepRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.StepRunEntity", b =>
                 {
-                    b.HasOne("DotRun.Database.JobRunRecord", null)
+                    b.HasOne("DotRun.Database.JobRunEntity", null)
                         .WithMany()
                         .HasForeignKey("JobRunId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DotRun.Database.WorkflowRecord", b =>
+            modelBuilder.Entity("DotRun.Database.WorkflowEntity", b =>
                 {
-                    b.HasOne("DotRun.Database.ProjectRecord", "Project")
+                    b.HasOne("DotRun.Database.ProjectEntity", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -231,9 +235,9 @@ namespace DotRun.Database.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("DotRun.Database.WorkflowRunRecord", b =>
+            modelBuilder.Entity("DotRun.Database.WorkflowRunEntity", b =>
                 {
-                    b.HasOne("DotRun.Database.WorkflowRecord", null)
+                    b.HasOne("DotRun.Database.WorkflowEntity", null)
                         .WithMany()
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -1,6 +1,6 @@
 namespace DotRun.Database;
 
-public record RecordBase
+public record EntityBase
 {
     public Guid Id { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

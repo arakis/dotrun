@@ -1,6 +1,6 @@
 ﻿namespace DotRun.Database;
 
-public record ProjectRecord : RecordBase
+public record ProjectEntity : EntityBase
 {
     public string Name { get; set; }
 }

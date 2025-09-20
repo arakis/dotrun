@@ -1,14 +1,15 @@
 namespace DotRun.Database;
 
-public record JobRunRecord : RecordBase
+public record WorkflowRunEntity : EntityBase
 {
-    public string Name { get; set; }
-
     public Guid WorkflowId { get; set; }
-    public Guid WorkflowRunId { get; set; }
 
+    /// <summary>
+    /// Original source of the workflow run (e.g. YAML definition)
+    /// </summary>
+    public string Source { get; set; } = null!;
+    
     public ExecutionStatus Status { get; set; }
-
     public DateTimeOffset? StartedAt { get; set; }
     public DateTimeOffset? FinishedAt { get; set; }
 }
