@@ -7,7 +7,7 @@ namespace DotRun.Tests;
 public class WorkflowEntityTests : IntegrationTestBase
 {
     [Fact]
-    public async Task List_ReturnsSuccessStatusCode()
+    public async Task Test_WorkflowEntity_Creation()
     {
         // Arrange
         DotRunDbContext context = DbHelper.CreateDbContext();
@@ -27,6 +27,7 @@ public class WorkflowEntityTests : IntegrationTestBase
             Id = Guid.NewGuid(),
             ProjectId = project.Id,
             Name = "Test Workflow",
+            Slug = "test-workflow",
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         });

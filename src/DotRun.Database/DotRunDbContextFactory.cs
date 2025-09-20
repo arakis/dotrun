@@ -4,9 +4,12 @@ using Npgsql;
 
 namespace DotRun.Database;
 
-public class DotRunDbContextFactory : IDesignTimeDbContextFactory<DotRunDbContext>
+public class DotRunDbContextFactory : IDesignTimeDbContextFactory<DotRunDbContext>, IDbContextFactory<DotRunDbContext>
 {
     public DotRunDbContext CreateDbContext(string[] args)
+        => CreateDbContext();
+
+    public DotRunDbContext CreateDbContext()
     {
         var dataSourceBuilder = new NpgsqlDataSourceBuilder("Host=localhost;Port=14080;Database=dotrun;Username=postgres;Password=postgres");
         dataSourceBuilder.MapEnum<ExecutionStatus>();
