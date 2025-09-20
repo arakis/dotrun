@@ -26,9 +26,7 @@
         <h1 class="detail-name">@Model.Name</h1>
         <div class="detail-actions">
             <button class="btn-action btn-run" title="Run">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
+                <i class="bi bi-play-fill"></i>
                 Run
             </button>
         </div>
@@ -38,25 +36,22 @@
         <div class="detail-content-header">
             <h2>Definition</h2>
             <button class="btn-action btn-copy" title="Copy">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
+                <i class="bi bi-clipboard"></i>
                 Copy
             </button>
         </div>
-        <pre class="code-preview"><code>@Model.Content</code></pre>
+        @await Html.PartialAsync("_YamlHighlight", Model.Content)
     </div>
 </div>
 
 @section Scripts {
     <script>
         document.querySelector('.btn-copy')?.addEventListener('click', function() {
-            const content = document.querySelector('.code-preview code').textContent;
+            const content = document.querySelector('.language-yaml').textContent;
             navigator.clipboard.writeText(content).then(function() {
                 const btn = document.querySelector('.btn-copy');
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied';
+                btn.innerHTML = '<i class="bi bi-check"></i> Copied';
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                 }, 2000);
