@@ -98,8 +98,8 @@ public class WorkflowTrackingService : IWorkflowTrackingService
                 Id = jobContext.JobRunId, // Use the ID already assigned to the context
                 WorkflowRunId = workflowRunId,
                 WorkflowId = workflowId,
-                Name = jobContext.Job.Name ?? string.Empty, // Don't care about null/empty
-                Slug = jobContext.Job.Name ?? string.Empty,
+                Name = jobContext.Job.Name, // Can be null
+                Slug = jobContext.Job.Name, // Can be null
                 Status = ExecutionStatus.Queued
             };
             _context.JobRun.Add(jobRun);
@@ -110,8 +110,8 @@ public class WorkflowTrackingService : IWorkflowTrackingService
                 {
                     Id = stepContext.StepRunId, // Use the ID already assigned to the context
                     JobRunId = jobContext.JobRunId,
-                    Name = stepContext.Step.Name ?? string.Empty,
-                    Slug = stepContext.Step.Name ?? string.Empty,
+                    Name = stepContext.Step.Name, // Can be null
+                    Slug = stepContext.Step.Name, // Can be null
                     Status = ExecutionStatus.Queued
                 };
                 _context.StepRun.Add(stepRun);
