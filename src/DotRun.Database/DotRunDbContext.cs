@@ -26,6 +26,8 @@ public class DotRunDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasPostgresEnum<ExecutionStatus>();
+        
         // Configure singular table names (remove "Record" suffix)
         modelBuilder.Entity<ProjectEntity>().ToTable("Project");
         modelBuilder.Entity<WorkflowEntity>().ToTable("Workflow");
