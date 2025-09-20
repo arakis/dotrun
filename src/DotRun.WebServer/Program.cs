@@ -16,10 +16,10 @@ builder.Services.AddSingleton<IDotRunConfigService, DotRunConfigService>();
 // Note: AddDotRunDatabase already registers IWorkflowResolver as Scoped
 // builder.Services.AddScoped<IWorkflowResolver, WorkflowResolver>();
 
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
-}).AddNewtonsoftJson();
+builder.Services
+    .AddControllersWithViews(options => { options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer())); })
+    .AddNewtonsoftJson()
+    .AddRazorRuntimeCompilation();
 
 var app = builder.Build();
 
