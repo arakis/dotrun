@@ -1,40 +1,38 @@
 using System.Threading.Tasks;
 using DotRun.Runtime.Factories;
 using Microsoft.Extensions.Logging;
+using DotRun.Runtime.Services.Tracking;
+using DotRun.Runtime.Model;
 
 namespace DotRun.Runtime.Runners;
 
 public class StepRunner : IStepRunner
 {
+    private readonly IStepTrackingService _trackingService;
     private readonly IStepExecutorFactory _stepExecutorFactory;
     private readonly ILogger<StepRunner> _logger;
 
     public StepRunner(
+        IStepTrackingService trackingService,
         IStepExecutorFactory stepExecutorFactory,
         ILogger<StepRunner> logger)
     {
+        _trackingService = trackingService;
         _stepExecutorFactory = stepExecutorFactory;
         _logger = logger;
     }
 
     public async Task<StepResult> RunAsync(Step step, StepContext stepContext)
     {
-        _logger.LogDebug("Creating executor for step: {StepName}", step.Name);
+        _logger.LogInformation("Starting step: {StepName}", step.Name);
         
+        await _trackingService.StartStepRunAsync(stepContext.StepRunId);
+
         var executor = _stepExecutorFactory.CreateStepExecutor(step, stepContext);
-        
-        _logger.LogInformation("Running step: {StepName}", step.Name);
         var result = await executor.Run();
-        
-        if (result.Failed)
-        {
-            _logger.LogError("Step {StepName} failed with exit code {ExitCode}", 
-                step.Name, result.ExitCode);
-        }
-        else
-        {
-            _logger.LogDebug("Step {StepName} completed successfully", step.Name);
-        }
+
+        var status = result.Failed ? ExecutionStatus.Failed : ExecutionStatus.Succeeded;
+        await _trackingService.CompleteStepRunAsync(stepContext.StepRunId, status);
 
         return result;
     }

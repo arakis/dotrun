@@ -4,5 +4,5 @@ namespace DotRun.Runtime.Runners;
 
 public interface IWorkflowRunner
 {
-    Task<WorkflowResult> RunAsync(Workflow workflow, RunContext runContext);
+    Task<WorkflowResult> RunAsync(Workflow workflow, WorkflowContext workflowContext);
 }

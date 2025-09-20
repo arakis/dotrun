@@ -1,3 +1,5 @@
+using DotRun.Runtime.Model;
+
 namespace DotRun.Database;
 
 public record StepRunEntity : EntityBase

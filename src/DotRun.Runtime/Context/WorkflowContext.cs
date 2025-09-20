@@ -14,11 +14,14 @@ public class WorkflowContext
 {
     public Workflow Workflow { get; }
     public RunContext RunContext { get; }
+    public Guid WorkflowRunId { get; set; }
+    public List<JobContext> JobContexts { get; set; }
 
     public WorkflowContext(Workflow workflow, RunContext runContext)
     {
         Workflow = workflow;
         RunContext = runContext;
+        JobContexts = new List<JobContext>();
     }
 
     private Dictionary<string, INode> Nodes = new Dictionary<string, INode>();

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Npgsql;
+using DotRun.Runtime.Model;
 
 namespace DotRun.Database;
 

@@ -19,6 +19,8 @@ public class StepContext
     public WorkflowContext WorkflowContext => JobContext.WorkflowContext;
 
     public Step Step { get; set; }
+    
+    public Guid StepRunId { get; set; }
 
     public INode Node
         => WorkflowContext.GetNode(Step.Node);

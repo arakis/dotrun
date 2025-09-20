@@ -21,12 +21,12 @@ public static class ServiceCollectionExtensions
         // Stateless orchestrator that creates scoped contexts for each execution
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
         
-        // Runners - Singleton
-        // Stateless services that execute workflows, jobs, and steps
-        // Each execution receives its own context, maintaining isolation
-        services.AddSingleton<IWorkflowRunner, WorkflowRunner>();
-        services.AddSingleton<IJobRunner, JobRunner>();
-        services.AddSingleton<IStepRunner, StepRunner>();
+        // Runners - Scoped
+        // Services that execute workflows, jobs, and steps with tracking
+        // Each workflow run gets its own scoped instances with isolated DbContext
+        services.AddScoped<IWorkflowRunner, WorkflowRunner>();
+        services.AddScoped<IJobRunner, JobRunner>();
+        services.AddScoped<IStepRunner, StepRunner>();
         
         // Factories - Singleton
         // Stateless factories that create instances on demand

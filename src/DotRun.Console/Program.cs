@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
+using DotRun.Database.Extensions;
 using DotRun.Runtime.Configuration;
 using DotRun.Runtime.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +50,9 @@ class Program
 
                     // Add DotRun services
                     services.AddDotRunServices();
+                    
+                    // Add DotRun database services
+                    services.AddDotRunDatabase();
 
                     // Add hosted service
                     services.AddHostedService<DotRunHostedService>();
