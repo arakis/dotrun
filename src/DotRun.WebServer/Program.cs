@@ -1,7 +1,13 @@
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using DotRun.WebServer;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+}).AddNewtonsoftJson();
 
 var app = builder.Build();
 

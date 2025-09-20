@@ -11,4 +11,8 @@
       <ProjectReference Include="..\DotRun.Runtime\DotRun.Runtime.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.0" />
+    </ItemGroup>
+
 </Project>
