@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotRun.Migrations
 {
     [DbContext(typeof(DotRunDbContext))]
-    [Migration("20250920104909_AddWorkflowTrackingFields")]
+    [Migration("20250920105846_AddWorkflowTrackingFields")]
     partial class AddWorkflowTrackingFields
     {
         /// <inheritdoc />

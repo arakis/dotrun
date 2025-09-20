@@ -11,9 +11,8 @@ namespace DotRun.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:execution_status", "queued,pending,started,failed,succeeded,cancelled,skipped")
-                .OldAnnotation("Npgsql:Enum:execution_status", "started,queued,succeeded,cancelled,failed");
+            // Skip enum alteration as it already exists with the required values
+            // The enum was already modified in previous migrations
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsActive",
@@ -51,9 +50,7 @@ namespace DotRun.Migrations
                 name: "Slug",
                 table: "Project");
 
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:execution_status", "started,queued,succeeded,cancelled,failed")
-                .OldAnnotation("Npgsql:Enum:execution_status", "queued,pending,started,failed,succeeded,cancelled,skipped");
+            // Skip enum alteration in Down migration as well
         }
     }
 }
