@@ -11,17 +11,17 @@ public interface IWorkflowResolver
     /// Returns the workflow and its fully qualified logical path.
     /// </summary>
     (Workflow Workflow, string QualifiedPath) GetByPath(DotRunConfigV2 config, string workflowPath);
-    
+
     /// <summary>
     /// List all available workflow paths
     /// </summary>
     IEnumerable<string> ListWorkflows(DotRunConfigV2 config);
-    
+
     /// <summary>
     /// Check if a workflow exists at the given path
     /// </summary>
     bool ValidateWorkflow(DotRunConfigV2 config, string workflowPath);
-    
+
     /// <summary>
     /// Get all workflows that match a given name (could be in different paths)
     /// Returns tuples of (qualified path, workflow)

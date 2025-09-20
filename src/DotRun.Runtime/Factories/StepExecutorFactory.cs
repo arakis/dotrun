@@ -44,17 +44,17 @@ public class StepExecutorFactory : IStepExecutorFactory
 
         // Get or create the node for this step
         var node = GetOrCreateNode(step, context);
-        
+
         // Create the shell for this step
         var shell = _shellFactory.CreateShell(step.Shell);
-        
+
         // Create the step executor with all dependencies
         var executor = new StepExecutor(step, context, node, shell, logger ?? new ConsoleOutput());
 
         _logger.LogInformation("Created step executor for step: {StepName}", step.Name);
         return executor;
     }
-    
+
     private INode GetOrCreateNode(Step step, StepContext context)
     {
         // Get the node from WorkflowContext (which caches nodes)

@@ -25,7 +25,7 @@ public class StepRunner : IStepRunner
     public async Task<StepResult> RunAsync(Step step, StepContext stepContext)
     {
         _logger.LogInformation("Starting step: {StepName}", step.Name);
-        
+
         await _trackingService.StartStepRunAsync(stepContext.StepRunId);
 
         var executor = _stepExecutorFactory.CreateStepExecutor(step, stepContext);

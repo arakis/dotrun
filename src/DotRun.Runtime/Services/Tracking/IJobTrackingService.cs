@@ -2,7 +2,7 @@ using DotRun.Runtime.Model;
 
 namespace DotRun.Runtime.Services.Tracking;
 
-public interface IJobTrackingService  
+public interface IJobTrackingService
 {
     Task CreateJobRunAsync(Guid jobRunId, Guid workflowRunId, Guid workflowId, string name);
     Task StartJobRunAsync(Guid jobRunId);

@@ -34,7 +34,7 @@ public class ConfigurationLoader : IConfigurationLoader
             }
 
             var config = DotRunConfig.FromFile(configFilePath);
-            
+
             _logger.LogInformation("Configuration loaded successfully from {ConfigFile}", configFilePath);
             _logger.LogDebug("Projects found: {ProjectCount}", config.Projects?.Count ?? 0);
 

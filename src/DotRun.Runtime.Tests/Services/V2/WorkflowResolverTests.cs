@@ -12,7 +12,7 @@ namespace DotRun.Runtime.Tests.Services.V2;
 
 public class WorkflowResolverTests : IDisposable
 {
-    private readonly WorkflowResolver _resolver;
+    private readonly IWorkflowResolver _resolver;
     private readonly ILogger<WorkflowResolver> _loggerMock;
     private readonly string _testRoot;
 

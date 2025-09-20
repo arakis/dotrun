@@ -25,7 +25,7 @@ public class JobRunner : IJobRunner
     public async Task<JobResult> RunAsync(Job job, JobContext jobContext)
     {
         _logger.LogInformation("Starting job: {JobName}", job.Name);
-        
+
         await _trackingService.StartJobRunAsync(jobContext.JobRunId);
 
         var results = new List<StepResult>();
@@ -36,9 +36,9 @@ public class JobRunner : IJobRunner
             foreach (var subJobContext in jobContext.SubJobContexts)
             {
                 var subJobResult = await RunAsync(subJobContext.Job, subJobContext);
-                
+
                 results.Add(new StepResult(null) { ExitCode = subJobResult.Failed ? 1 : 0 });
-                
+
                 if (subJobResult.Failed) break;
             }
         }
@@ -55,7 +55,7 @@ public class JobRunner : IJobRunner
         }
 
         var jobResult = new JobResult(jobContext) { StepResults = results };
-        
+
         var status = jobResult.Failed ? ExecutionStatus.Failed : ExecutionStatus.Succeeded;
         await _trackingService.CompleteJobRunAsync(jobContext.JobRunId, status);
 

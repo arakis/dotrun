@@ -11,7 +11,7 @@ public class RepositoryPath
     /// - Empty string: mounts at repository root
     /// </summary>
     public string Mount { get; set; } = "";
-    
+
     /// <summary>
     /// Physical path relative to repository BasePath, or absolute path (starting with / or ~).
     /// Defaults to "." (current directory).

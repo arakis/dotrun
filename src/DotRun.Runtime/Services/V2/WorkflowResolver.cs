@@ -16,7 +16,7 @@ public class WorkflowResolver : IWorkflowResolver
         _logger = logger;
     }
 
-    public Workflow GetByPath(DotRunConfigV2 config, WorkflowReference reference)
+    public Workflow GetByLogicalPath(DotRunConfigV2 config, WorkflowReference reference)
     {
         throw new NotImplementedException();
     }

@@ -6,12 +6,12 @@ namespace DotRun.Runtime;
 public class RunContext : IDisposable
 {
     private readonly IServiceScope _serviceScope;
-    
+
     /// <summary>
     /// Gets the scoped service provider for this execution context.
     /// </summary>
     public IServiceProvider ServiceProvider => _serviceScope.ServiceProvider;
-    
+
     /// <summary>
     /// Gets the service scope for manual management if needed.
     /// </summary>
@@ -24,7 +24,7 @@ public class RunContext : IDisposable
     {
         if (serviceProvider == null)
             throw new ArgumentNullException(nameof(serviceProvider));
-            
+
         _serviceScope = serviceProvider.CreateScope();
     }
 

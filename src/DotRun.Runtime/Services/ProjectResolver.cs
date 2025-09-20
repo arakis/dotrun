@@ -15,7 +15,7 @@ public class ProjectResolver : IProjectResolver
     public Project GetProject(DotRunConfig config, string projectName)
     {
         _logger.LogDebug("Resolving project: {ProjectName}", projectName);
-        
+
         if (config?.Projects == null)
         {
             _logger.LogError("Configuration or projects collection is null");
@@ -28,16 +28,16 @@ public class ProjectResolver : IProjectResolver
             _logger.LogError("Project not found: {ProjectName}", projectName);
             return null;
         }
-        _logger.LogDebug("Project resolved: {ProjectName} with {WorkflowCount} workflows", 
+        _logger.LogDebug("Project resolved: {ProjectName} with {WorkflowCount} workflows",
             projectName, project.Workflows?.Count ?? 0);
-        
+
         return project;
     }
 
     public Workflow GetWorkflow(Project project, string workflowName)
     {
         _logger.LogDebug("Resolving workflow: {WorkflowName}", workflowName);
-        
+
         if (project?.Workflows == null)
         {
             _logger.LogError("Project or workflows collection is null");
@@ -50,9 +50,9 @@ public class ProjectResolver : IProjectResolver
             _logger.LogError("Workflow not found: {WorkflowName}", workflowName);
             return null;
         }
-        _logger.LogDebug("Workflow resolved: {WorkflowName} with {JobCount} jobs", 
+        _logger.LogDebug("Workflow resolved: {WorkflowName} with {JobCount} jobs",
             workflowName, workflow.Jobs?.Count ?? 0);
-        
+
         return workflow;
     }
 
@@ -71,11 +71,11 @@ public class ProjectResolver : IProjectResolver
         }
 
         bool exists = config.Projects[projectName] != null;
-        
+
         if (!exists)
         {
             _logger.LogWarning("Project validation failed: {ProjectName} not found", projectName);
-            _logger.LogDebug("Available projects: {Projects}", 
+            _logger.LogDebug("Available projects: {Projects}",
                 string.Join(", ", config.Projects.Select(p => p.Name)));
         }
 
@@ -97,11 +97,11 @@ public class ProjectResolver : IProjectResolver
         }
 
         bool exists = project.Workflows[workflowName] != null;
-        
+
         if (!exists)
         {
             _logger.LogWarning("Workflow validation failed: {WorkflowName} not found", workflowName);
-            _logger.LogDebug("Available workflows: {Workflows}", 
+            _logger.LogDebug("Available workflows: {Workflows}",
                 string.Join(", ", project.Workflows.Select(w => w.Name)));
         }
 

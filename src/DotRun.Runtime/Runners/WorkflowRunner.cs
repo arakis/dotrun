@@ -26,7 +26,7 @@ public class WorkflowRunner : IWorkflowRunner
     public async Task<WorkflowResult> RunAsync(Workflow workflow, WorkflowContext workflowContext)
     {
         _logger.LogInformation("Starting workflow: {WorkflowName}", workflow.Name);
-        
+
         await _trackingService.StartWorkflowRunAsync(workflowContext.WorkflowRunId);
 
         var results = new List<JobResult>();
