@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using DotRun.WebServer;
+using DotRun.Database.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDotRunDatabase();
+
 builder.Services.AddControllersWithViews(options =>
 {
     options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));

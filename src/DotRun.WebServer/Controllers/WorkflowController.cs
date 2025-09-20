@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using DotRun.WebServer.Models;
-using System.IO;
+using DotRun.Database;
+using System.Linq;
 
 namespace DotRun.WebServer.Controllers;
 
@@ -8,105 +10,141 @@ namespace DotRun.WebServer.Controllers;
 public class WorkflowController : Controller
 {
     private readonly ILogger<WorkflowController> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly string _workflowBasePath;
+    private readonly DotRunDbContext _dbContext;
 
-    public WorkflowController(ILogger<WorkflowController> logger, IConfiguration configuration)
+    public WorkflowController(ILogger<WorkflowController> logger, DotRunDbContext dbContext)
     {
         _logger = logger;
-        _configuration = configuration;
-        _workflowBasePath = _configuration["WorkflowBasePath"] ?? "/home/sebastian/dotrun.config";
+        _dbContext = dbContext;
     }
 
     [HttpGet("")]
     [HttpGet("{**path}")]
-    public IActionResult Browse(string? path = null)
+    public async Task<IActionResult> Browse(string? path = null)
     {
         path = path ?? "";
         
-        var fullPath = Path.Combine(_workflowBasePath, path);
-        
-        // Security check: ensure we're not going outside the workflow directory
-        var resolvedPath = Path.GetFullPath(fullPath);
-        if (!resolvedPath.StartsWith(Path.GetFullPath(_workflowBasePath)))
+        // Query all active workflows from the database
+        var workflows = await _dbContext.Workflow
+            .Where(w => w.DeactivatedAt == null)
+            .OrderBy(w => w.QualifiedPath)
+            .ToListAsync();
+
+        // If path ends with a workflow name (no extension), show the workflow detail
+        var matchingWorkflow = workflows.FirstOrDefault(w => 
+            w.QualifiedPath.Equals(path, StringComparison.OrdinalIgnoreCase) ||
+            (path.Contains('.') && w.YamlFilePath.EndsWith(path, StringComparison.OrdinalIgnoreCase)));
+
+        if (matchingWorkflow != null)
         {
-            return NotFound();
+            return await ShowWorkflow(matchingWorkflow);
         }
 
-        // If it's a yaml file, display the workflow
-        if (System.IO.File.Exists(resolvedPath) && (Path.GetExtension(resolvedPath) == ".yaml" || Path.GetExtension(resolvedPath) == ".yml"))
-        {
-            return ShowWorkflow(resolvedPath, path);
-        }
-
-        // If it's a directory, show the file browser
-        if (Directory.Exists(resolvedPath))
-        {
-            return ShowDirectory(resolvedPath, path);
-        }
-
-        return NotFound();
+        // Otherwise, show directory listing
+        return ShowDirectory(workflows, path);
     }
 
-    private IActionResult ShowDirectory(string fullPath, string relativePath)
+    private IActionResult ShowDirectory(List<WorkflowEntity> workflows, string currentPath)
     {
         var model = new WorkflowBrowserViewModel
         {
-            CurrentPath = relativePath,
-            BreadcrumbItems = BuildBreadcrumbs(relativePath),
+            CurrentPath = currentPath,
+            BreadcrumbItems = BuildBreadcrumbs(currentPath),
             Items = new List<WorkflowItemViewModel>()
         };
 
-        // Get directories
-        foreach (var dir in Directory.GetDirectories(fullPath))
+        // Build a virtual file system from qualified paths
+        var pathSegments = string.IsNullOrEmpty(currentPath) 
+            ? Array.Empty<string>() 
+            : currentPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        
+        var relevantWorkflows = workflows.Where(w =>
         {
-            var dirName = Path.GetFileName(dir);
+            if (string.IsNullOrEmpty(currentPath))
+                return true;
+            
+            return w.QualifiedPath.StartsWith(currentPath + "/", StringComparison.OrdinalIgnoreCase) ||
+                   w.QualifiedPath.Equals(currentPath, StringComparison.OrdinalIgnoreCase);
+        }).ToList();
+
+        // Get unique directories at this level
+        var directories = new HashSet<string>();
+        var files = new List<WorkflowItemViewModel>();
+
+        foreach (var workflow in relevantWorkflows)
+        {
+            var workflowPathParts = workflow.QualifiedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            
+            // If workflow path has more segments than current path, it might be in a subdirectory
+            if (workflowPathParts.Length > pathSegments.Length + 1)
+            {
+                // This is in a subdirectory - add the next directory segment
+                var nextDir = workflowPathParts[pathSegments.Length];
+                directories.Add(nextDir);
+            }
+            else if (workflowPathParts.Length == pathSegments.Length + 1 || 
+                     (pathSegments.Length == 0 && workflowPathParts.Length > 0))
+            {
+                // This is a direct child workflow
+                var workflowName = Path.GetFileNameWithoutExtension(workflow.YamlFilePath);
+                files.Add(new WorkflowItemViewModel
+                {
+                    Name = workflowName,
+                    IsDirectory = false,
+                    Path = workflow.QualifiedPath
+                });
+            }
+        }
+
+        // Add directories to model
+        foreach (var dir in directories.OrderBy(d => d))
+        {
+            var dirPath = string.IsNullOrEmpty(currentPath) 
+                ? dir 
+                : $"{currentPath}/{dir}";
+                
             model.Items.Add(new WorkflowItemViewModel
             {
-                Name = dirName,
+                Name = dir,
                 IsDirectory = true,
-                Path = string.IsNullOrEmpty(relativePath) 
-                    ? dirName 
-                    : Path.Combine(relativePath, dirName).Replace('\\', '/')
+                Path = dirPath
             });
         }
 
-        // Get workflow files
-        foreach (var file in Directory.GetFiles(fullPath, "*.yaml")
-                    .Concat(Directory.GetFiles(fullPath, "*.yml")))
-        {
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            var fullFileName = Path.GetFileName(file);
-            model.Items.Add(new WorkflowItemViewModel
-            {
-                Name = fileName,
-                IsDirectory = false,
-                Path = string.IsNullOrEmpty(relativePath) 
-                    ? fullFileName
-                    : Path.Combine(relativePath, fullFileName).Replace('\\', '/')
-            });
-        }
-
-        // Sort: directories first, then files, alphabetically
-        model.Items = model.Items
-            .OrderByDescending(i => i.IsDirectory)
-            .ThenBy(i => i.Name)
-            .ToList();
+        // Add files to model
+        model.Items.AddRange(files.OrderBy(f => f.Name));
 
         return View("Browse", model);
     }
 
-    private IActionResult ShowWorkflow(string fullPath, string relativePath)
+    private async Task<IActionResult> ShowWorkflow(WorkflowEntity workflow)
     {
-        var workflowContent = System.IO.File.ReadAllText(fullPath);
-        var fileName = Path.GetFileNameWithoutExtension(fullPath);
+        string workflowContent = "";
+        
+        // Try to read the workflow file content if the file exists
+        if (!string.IsNullOrEmpty(workflow.YamlFilePath) && System.IO.File.Exists(workflow.YamlFilePath))
+        {
+            try
+            {
+                workflowContent = await System.IO.File.ReadAllTextAsync(workflow.YamlFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not read workflow file at {Path}", workflow.YamlFilePath);
+                workflowContent = "# Workflow file not accessible\n# Path: " + workflow.YamlFilePath;
+            }
+        }
+        else
+        {
+            workflowContent = "# Workflow file not found\n# Expected path: " + workflow.YamlFilePath;
+        }
         
         var model = new WorkflowDetailViewModel
         {
-            Name = fileName,
-            Path = relativePath,
+            Name = workflow.Name,
+            Path = workflow.QualifiedPath,
             Content = workflowContent,
-            BreadcrumbItems = BuildBreadcrumbs(relativePath)
+            BreadcrumbItems = BuildBreadcrumbs(workflow.QualifiedPath)
         };
 
         return View("Detail", model);
@@ -131,13 +169,10 @@ public class WorkflowController : Controller
                 currentPath += "/";
             
             currentPath += parts[i];
-
-            var isFile = i == parts.Length - 1 && 
-                        (parts[i].EndsWith(".yaml") || parts[i].EndsWith(".yml"));
             
             breadcrumbs.Add(new BreadcrumbItem
             {
-                Name = isFile ? Path.GetFileNameWithoutExtension(parts[i]) : parts[i],
+                Name = parts[i],
                 Path = currentPath
             });
         }
