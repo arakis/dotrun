@@ -176,9 +176,9 @@ body {
   align-items: center;
 }
 
-.item-icon svg {
+.item-icon i {
   color: var(--color-text-muted);
-  vertical-align: text-bottom;
+  font-size: 16px;
 }
 
 .item-name {
