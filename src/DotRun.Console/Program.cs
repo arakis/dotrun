@@ -29,7 +29,7 @@ class Program
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-                    config.AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", 
+                    config.AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json",
                         optional: true, reloadOnChange: false);
                     config.AddEnvironmentVariables(prefix: "DOTRUN_");
                     config.AddCommandLine(args);
@@ -50,7 +50,7 @@ class Program
 
                     // Add DotRun services
                     services.AddDotRunServices();
-                    
+
                     // Add DotRun database services
                     services.AddDotRunDatabase();
 
@@ -60,16 +60,13 @@ class Program
                 .ConfigureLogging((hostContext, logging) =>
                 {
                     logging.ClearProviders();
-                    logging.AddConsole();
+                    logging.AddConsole(loggerOptions => { loggerOptions.FormatterName = nameof(ColoredConsoleFormatter); })
+                        .AddConsoleFormatter<ColoredConsoleFormatter, ColoredConsoleFormatterOptions>(formatterOptions =>
+                        {
+                            formatterOptions.TimestampFormat = "[HH:mm:ss.fff] ";
+                            formatterOptions.UseUtcTimestamp = false; // Use local time
+                        });
                     logging.SetMinimumLevel(options.LogLevel);
-                    
-                    // Configure console logging format
-                    logging.AddSimpleConsole(consoleOptions =>
-                    {
-                        consoleOptions.IncludeScopes = true;
-                        consoleOptions.SingleLine = false;
-                        consoleOptions.TimestampFormat = "HH:mm:ss ";
-                    });
                 })
                 .UseConsoleLifetime()
                 .Build();
