@@ -1,0 +1,44 @@
+@model string
+
+@{
+    var uniqueId = "yaml-" + Guid.NewGuid().ToString("N");
+}
+
+<link rel="stylesheet" href="~/lib/prism/prism.min.css" />
+<style>
+    .yaml-container {
+        margin: 0;
+        padding: 0;
+    }
+    .yaml-container pre[class*="language-"] {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        padding: 16px;
+        margin: 0;
+        overflow-x: auto;
+        font-size: 14px;
+        line-height: 1.5;
+        font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    }
+    .yaml-container code[class*="language-"] {
+        background: transparent;
+        padding: 0;
+        font-size: inherit;
+    }
+</style>
+
+<div class="yaml-container">
+    <pre id="@uniqueId"><code class="language-yaml">@Model</code></pre>
+</div>
+
+<script src="~/lib/prism/prism.min.js"></script>
+<script src="~/lib/prism/prism-yaml.min.js"></script>
+<script>
+    (function() {
+        var element = document.getElementById('@uniqueId');
+        if (element && typeof Prism !== 'undefined') {
+            Prism.highlightElement(element.querySelector('code.language-yaml'));
+        }
+    })();
+</script>

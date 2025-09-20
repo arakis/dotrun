@@ -8,7 +8,8 @@
       "Bash(psql:*)",
       "Read(/home/sebastian/dotrun.config/projects/proj1/**)",
       "Read(/home/sebastian/dotrun.config/projects/proj1/**)",
-      "Read(/home/sebastian/projects/arakis/dotrun/repo/**)"
+      "Read(/home/sebastian/projects/arakis/dotrun/repo/**)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
