@@ -2,6 +2,7 @@ namespace DotRun.Database;
 
 public record StepRunEntity : EntityBase
 {
+    public string Slug { get; set; }
     public string Name { get; set; }
     
     public Guid JobRunId { get; set; }

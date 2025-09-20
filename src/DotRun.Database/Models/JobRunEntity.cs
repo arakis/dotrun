@@ -1,7 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace DotRun.Database;
 
 public record JobRunEntity : EntityBase
 {
+    public string Slug { get; set; }
     public string Name { get; set; }
 
     public Guid WorkflowId { get; set; }
