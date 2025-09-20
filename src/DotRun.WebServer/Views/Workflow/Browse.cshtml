@@ -23,8 +23,6 @@
     </nav>
 
     <div class="explorer-container">
-        <h1 class="explorer-title">Workflows</h1>
-        
         @if (!Model.Items.Any())
         {
             <div class="explorer-empty">
@@ -34,6 +32,7 @@
         else
         {
             <div class="explorer-list">
+                <h2 class="explorer-page-title">Workflows</h2>
                 <table class="explorer-table">
                     <thead>
                         <tr>
