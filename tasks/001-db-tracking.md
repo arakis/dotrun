@@ -22,8 +22,8 @@ public interface IWorkflowTrackingService
     Task StartWorkflowRunAsync(Guid runId);
     Task CompleteWorkflowRunAsync(Guid runId, ExecutionStatus status);
     
-    // Pre-create all execution records
-    Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, Workflow workflow);
+    // Pre-create all execution records with provided IDs
+    Task CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, WorkflowContext workflowContext);
 }
 ```
 
@@ -31,7 +31,7 @@ public interface IWorkflowTrackingService
 ```csharp
 public interface IJobTrackingService  
 {
-    Task<Dictionary<string, Guid>> CreateJobRunsAsync(Guid workflowRunId, IList<Job> jobs);
+    Task CreateJobRunAsync(Guid jobRunId, Guid workflowRunId, Guid workflowId, string name);
     Task StartJobRunAsync(Guid jobRunId);
     Task CompleteJobRunAsync(Guid jobRunId, ExecutionStatus status);
     Task SkipJobRunAsync(Guid jobRunId);
@@ -42,7 +42,7 @@ public interface IJobTrackingService
 ```csharp
 public interface IStepTrackingService
 {
-    Task<Dictionary<string, Guid>> CreateStepRunsAsync(Guid jobRunId, IList<Step> steps);
+    Task CreateStepRunAsync(Guid stepRunId, Guid jobRunId, string name);
     Task StartStepRunAsync(Guid stepRunId);
     Task CompleteStepRunAsync(Guid stepRunId, ExecutionStatus status);
     Task SkipStepRunAsync(Guid stepRunId);
@@ -88,31 +88,30 @@ public class WorkflowTrackingService : IWorkflowTrackingService
         return workflow.Id;
     }
     
-    public async Task<Dictionary<string, Guid>> CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, Workflow workflow)
+    public async Task CreateExecutionPlanAsync(Guid workflowRunId, Guid workflowId, WorkflowContext workflowContext)
     {
-        var jobIds = new Dictionary<string, Guid>();
-        
-        // Pre-create all jobs and steps with Queued status
-        foreach (var job in workflow.Jobs)
+        // Pre-create all jobs and steps with Queued status using IDs from contexts
+        foreach (var jobContext in workflowContext.JobContexts)
         {
             var jobRun = new JobRunEntity
             {
+                Id = jobContext.JobRunId, // Use the ID already assigned to the context
                 WorkflowRunId = workflowRunId,
-                WorkflowId = workflowId, // Now correctly using the workflow entity ID
-                Name = job.Name,
-                Slug = job.Name,
+                WorkflowId = workflowId,
+                Name = jobContext.Job.Name ?? string.Empty, // Don't care about null/empty
+                Slug = jobContext.Job.Name ?? string.Empty,
                 Status = ExecutionStatus.Queued
             };
             _context.JobRun.Add(jobRun);
-            jobIds[job.Name] = jobRun.Id;
             
-            foreach (var step in job.Steps ?? Enumerable.Empty<Step>())
+            foreach (var stepContext in jobContext.StepContexts)
             {
                 var stepRun = new StepRunEntity
                 {
-                    JobRunId = jobRun.Id,
-                    Name = step.Name,
-                    Slug = step.Name,
+                    Id = stepContext.StepRunId, // Use the ID already assigned to the context
+                    JobRunId = jobContext.JobRunId,
+                    Name = stepContext.Step.Name ?? string.Empty,
+                    Slug = stepContext.Step.Name ?? string.Empty,
                     Status = ExecutionStatus.Queued
                 };
                 _context.StepRun.Add(stepRun);
@@ -120,7 +119,6 @@ public class WorkflowTrackingService : IWorkflowTrackingService
         }
         
         await _context.SaveChangesAsync(); // Single save for efficiency
-        return jobIds;
     }
     
     public async Task StartWorkflowRunAsync(Guid runId)
@@ -166,22 +164,18 @@ public class WorkflowRunner : IWorkflowRunner
         _logger = logger;
     }
 
-    public async Task<WorkflowResult> RunAsync(Workflow workflow, RunContext runContext)
+    public async Task<WorkflowResult> RunAsync(Workflow workflow, WorkflowContext workflowContext)
     {
         _logger.LogInformation("Starting workflow: {WorkflowName}", workflow.Name);
         
         // Update status - if it fails, workflow fails
-        await _trackingService.StartWorkflowRunAsync(runContext.WorkflowRunId);
+        await _trackingService.StartWorkflowRunAsync(workflowContext.WorkflowRunId);
 
-        var workflowContext = new WorkflowContext(workflow, runContext);
         var results = new List<JobResult>();
 
-        foreach (var job in workflow.Jobs)
+        foreach (var jobContext in workflowContext.JobContexts)
         {
-            var jobRunId = runContext.JobRunIds[job.Name];
-            var jobContext = new JobContext(job, workflowContext, jobRunId);
-            
-            var result = await _jobRunner.RunAsync(job, jobContext);
+            var result = await _jobRunner.RunAsync(jobContext.Job, jobContext);
             results.Add(result);
 
             if (result.Failed) break;
@@ -189,7 +183,7 @@ public class WorkflowRunner : IWorkflowRunner
 
         // Complete tracking
         var status = results.Any(r => r.Failed) ? ExecutionStatus.Failed : ExecutionStatus.Succeeded;
-        await _trackingService.CompleteWorkflowRunAsync(runContext.WorkflowRunId, status);
+        await _trackingService.CompleteWorkflowRunAsync(workflowContext.WorkflowRunId, status);
 
         return new WorkflowResult(workflowContext) { JobResults = results };
     }
@@ -224,13 +218,11 @@ public class JobRunner : IJobRunner
         var results = new List<StepResult>();
 
         // Handle nested jobs
-        if (job.Jobs != null && job.Jobs.Count > 0)
+        if (jobContext.SubJobContexts != null && jobContext.SubJobContexts.Count > 0)
         {
-            foreach (var subJob in job.Jobs)
+            foreach (var subJobContext in jobContext.SubJobContexts)
             {
-                var subJobContext = new JobContext(subJob, jobContext.WorkflowContext, 
-                    jobContext.RunContext.JobRunIds[subJob.Name]);
-                var subJobResult = await RunAsync(subJob, subJobContext);
+                var subJobResult = await RunAsync(subJobContext.Job, subJobContext);
                 
                 results.Add(new StepResult(null) { ExitCode = subJobResult.Failed ? 1 : 0 });
                 
@@ -238,14 +230,11 @@ public class JobRunner : IJobRunner
             }
         }
         // Handle steps
-        else if (job.Steps != null && job.Steps.Count > 0)
+        else if (jobContext.StepContexts != null && jobContext.StepContexts.Count > 0)
         {
-            foreach (var step in job.Steps)
+            foreach (var stepContext in jobContext.StepContexts)
             {
-                var stepRunId = jobContext.RunContext.StepRunIds[$"{job.Name}.{step.Name}"];
-                var stepContext = new StepContext(step, jobContext, stepRunId);
-                
-                var result = await _stepRunner.RunAsync(step, stepContext);
+                var result = await _stepRunner.RunAsync(stepContext.Step, stepContext);
                 results.Add(result);
 
                 if (result.Failed) break;
@@ -330,22 +319,71 @@ public class WorkflowExecutor : IWorkflowExecutor
         // Create workflow run
         var workflowRunId = await scopedTracking.CreateWorkflowRunAsync(
             workflowId, workflow.Name, workflow.Name, yamlSource);
-        runContext.WorkflowRunId = workflowRunId;
         
-        // Pre-create execution plan (returns job/step IDs)
-        var jobIds = await scopedTracking.CreateExecutionPlanAsync(workflowRunId, workflowId, workflow);
-        runContext.JobRunIds = jobIds;
+        // Build the entire context tree with IDs upfront
+        var workflowContext = BuildWorkflowContext(workflow, workflowRunId, runContext);
         
-        // Also pre-populate step IDs if needed
-        // runContext.StepRunIds = await GetStepIds...
+        // Pre-create all execution records using the context tree
+        await scopedTracking.CreateExecutionPlanAsync(workflowRunId, workflowId, workflowContext);
         
         // Get scoped runner from the RunContext's scope
         var scopedRunner = runContext.ServiceProvider.GetRequiredService<IWorkflowRunner>();
         
-        // Execute workflow (runner has its own injected tracking service from same scope)
-        var result = await scopedRunner.RunAsync(workflow, runContext);
+        // Execute workflow with the pre-built context
+        var result = await scopedRunner.RunAsync(workflow, workflowContext);
         
         return result;
+    }
+    
+    private WorkflowContext BuildWorkflowContext(Workflow workflow, Guid workflowRunId, RunContext runContext)
+    {
+        var workflowContext = new WorkflowContext(workflow, runContext)
+        {
+            WorkflowRunId = workflowRunId,
+            JobContexts = new List<JobContext>()
+        };
+        
+        foreach (var job in workflow.Jobs)
+        {
+            var jobContext = BuildJobContext(job, workflowContext);
+            workflowContext.JobContexts.Add(jobContext);
+        }
+        
+        return workflowContext;
+    }
+    
+    private JobContext BuildJobContext(Job job, WorkflowContext workflowContext)
+    {
+        var jobContext = new JobContext(job, workflowContext)
+        {
+            JobRunId = Guid.NewGuid() // Assign ID at initialization
+        };
+        
+        // Handle nested jobs
+        if (job.Jobs != null && job.Jobs.Count > 0)
+        {
+            jobContext.SubJobContexts = new List<JobContext>();
+            foreach (var subJob in job.Jobs)
+            {
+                var subJobContext = BuildJobContext(subJob, workflowContext);
+                jobContext.SubJobContexts.Add(subJobContext);
+            }
+        }
+        // Handle steps
+        else if (job.Steps != null && job.Steps.Count > 0)
+        {
+            jobContext.StepContexts = new List<StepContext>();
+            foreach (var step in job.Steps)
+            {
+                var stepContext = new StepContext(step, jobContext)
+                {
+                    StepRunId = Guid.NewGuid() // Assign ID at initialization
+                };
+                jobContext.StepContexts.Add(stepContext);
+            }
+        }
+        
+        return jobContext;
     }
 }
 ```
@@ -358,10 +396,7 @@ public class RunContext : IDisposable
     
     public IServiceProvider ServiceProvider => _serviceScope.ServiceProvider;
     
-    // Tracking data shared across runners
-    public Guid WorkflowRunId { get; set; }
-    public Dictionary<string, Guid> JobRunIds { get; set; } = new();
-    public Dictionary<string, Guid> StepRunIds { get; set; } = new();
+    // No need for ID dictionaries - IDs are stored directly in contexts
     
     public RunContext(IServiceProvider serviceProvider)
     {
@@ -374,19 +409,36 @@ public class RunContext : IDisposable
 
 ### 7. Update Contexts
 ```csharp
+public class WorkflowContext
+{
+    public Workflow Workflow { get; }
+    public RunContext RunContext { get; }
+    public Guid WorkflowRunId { get; set; }
+    
+    // Pre-built tree of job contexts
+    public List<JobContext> JobContexts { get; set; }
+
+    public WorkflowContext(Workflow workflow, RunContext runContext)
+    {
+        Workflow = workflow;
+        RunContext = runContext;
+    }
+}
+
 public class JobContext
 {
     public Job Job { get; }
     public WorkflowContext WorkflowContext { get; }
-    public RunContext RunContext { get; }  // Need access to IDs
-    public Guid JobRunId { get; }
+    public Guid JobRunId { get; set; } // Assigned at initialization
+    
+    // Either sub-jobs or steps, not both
+    public List<JobContext> SubJobContexts { get; set; }
+    public List<StepContext> StepContexts { get; set; }
 
-    public JobContext(Job job, WorkflowContext workflowContext, Guid jobRunId)
+    public JobContext(Job job, WorkflowContext workflowContext)
     {
         Job = job;
         WorkflowContext = workflowContext;
-        RunContext = workflowContext.RunContext;
-        JobRunId = jobRunId;
     }
 }
 
@@ -394,13 +446,12 @@ public class StepContext
 {
     public Step Step { get; }
     public JobContext JobContext { get; }
-    public Guid StepRunId { get; }
+    public Guid StepRunId { get; set; } // Assigned at initialization
 
-    public StepContext(Step step, JobContext jobContext, Guid stepRunId)
+    public StepContext(Step step, JobContext jobContext)
     {
         Step = step;
         JobContext = jobContext;
-        StepRunId = stepRunId;
     }
 }
 ```
@@ -436,8 +487,11 @@ public static IServiceCollection AddDotRunServices(this IServiceCollection servi
 }
 ```
 
-### 9. Benefits of This Final Approach
+### 9. Benefits of This ID-Centric Approach
 
+- **ID-centric design** - Entity IDs assigned at context initialization, not lookup by name
+- **No name dependencies** - Works even with null/empty names and slugs
+- **Pre-built context tree** - Complete execution plan with IDs created before execution starts
 - **Simple and predictable** - If database fails, workflow fails
 - **Clean dependency injection** - Each component declares its dependencies in constructor
 - **No service locator** - No GetRequiredService calls except at scope creation
@@ -447,13 +501,15 @@ public static IServiceCollection AddDotRunServices(this IServiceCollection servi
 - **Clear failure modes** - Database issues are immediately visible
 - **Easy debugging** - Stack traces show exactly where tracking failed
 - **Testable** - Easy to mock tracking services for unit tests
+- **Type-safe ID passing** - IDs stored in strongly-typed context properties
 
 ### 10. Implementation Order
-1. Update database schema (add fields to WorkflowEntity)
-2. Create tracking service interfaces
-3. Implement tracking services (no error handling, let exceptions propagate)
-4. Change runners from Singleton to Scoped in ServiceCollectionExtensions
-5. Update runners to use constructor injection
-6. Update contexts to include IDs
-7. Update WorkflowExecutor to coordinate
-8. Test with concurrent workflow runs
+1. Update database schema (add LastRunAt and IsActive fields to WorkflowEntity)
+2. Update context classes to include ID properties and child context collections
+3. Create ID-centric tracking service interfaces
+4. Implement tracking services that use context-provided IDs
+5. Change runners from Singleton to Scoped in ServiceCollectionExtensions  
+6. Update runners to work with pre-built context trees
+7. Implement BuildWorkflowContext methods in WorkflowExecutor
+8. Update WorkflowExecutor to build context tree before execution
+9. Test with concurrent workflow runs to ensure proper isolation
