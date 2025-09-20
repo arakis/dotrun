@@ -80,7 +80,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = workflowDir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -114,7 +114,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = baseDir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "dev", Path = "projects/proj1" }
+                        new RepositoryPath { Mount = "dev", Path = "projects/proj1" }
                     }
                 }
             }
@@ -148,7 +148,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = baseDir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "workflows" }
+                        new RepositoryPath { Mount = "", Path = "workflows" }
                     }
                 }
             }
@@ -180,7 +180,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = "/some/other/path", // This should be ignored
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "prod", Path = absoluteDir } // Absolute path
+                        new RepositoryPath { Mount = "prod", Path = absoluteDir } // Absolute path
                     }
                 }
             }
@@ -213,7 +213,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir1,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 },
                 new Repository
@@ -222,7 +222,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir2,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -256,7 +256,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir1,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 },
                 new Repository
@@ -265,7 +265,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir2,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -305,7 +305,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = baseDir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "all", Path = "." }
+                        new RepositoryPath { Mount = "all", Path = "." }
                     }
                 }
             }
@@ -338,7 +338,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -367,7 +367,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -399,7 +399,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir1,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "dev", Path = "." }
+                        new RepositoryPath { Mount = "dev", Path = "." }
                     }
                 },
                 new Repository
@@ -408,7 +408,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir2,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "prod", Path = "." }
+                        new RepositoryPath { Mount = "prod", Path = "." }
                     }
                 }
             }
@@ -439,7 +439,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }
@@ -471,7 +471,7 @@ public class WorkflowResolverTests : IDisposable
                     BasePath = dir,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." } // Empty path name
+                        new RepositoryPath { Mount = "", Path = "." } // Empty path name
                     }
                 }
             }

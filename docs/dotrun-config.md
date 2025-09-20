@@ -35,7 +35,7 @@ Repositories:
     Type: <FileSystem|Git>
     BasePath: <path>
     Paths:
-      - Name: <string>
+      - Mount: <string>
         Path: <path>
 ```
 
@@ -59,8 +59,11 @@ List of mount points within the repository. If omitted, the entire BasePath is m
 
 ### RepositoryPath Fields
 
-**Name** (string, optional)  
-Logical name for this mount point. Empty string means mount at repository root.
+**Mount** (string, optional)  
+Mount point in the logical namespace. Can be:
+- Relative mount: `dev` mounts under repository namespace (e.g., `repo/dev`)
+- Absolute mount: `/tools` mounts at namespace root, ignoring repository name
+- Empty string: mounts at repository root
 
 **Path** (path, optional)  
 Physical path to the workflow directory. Can be:
@@ -78,7 +81,7 @@ Repositories:
   - Name: local
     BasePath: ~/dotrun.config
     Paths:
-      - Name: dev
+      - Mount: dev
         Path: projects/proj1  # Resolves to ~/dotrun.config/projects/proj1
 ```
 
@@ -90,9 +93,9 @@ Repositories:
   - Name: system
     BasePath: /ignored
     Paths:
-      - Name: global
+      - Mount: global
         Path: /opt/workflows  # Uses /opt/workflows directly
-      - Name: user
+      - Mount: user
         Path: ~/my-workflows  # Expands to home directory
 ```
 
@@ -116,8 +119,27 @@ Workflows are resolved using the following URI patterns:
 Empty names create merged namespaces:
 
 - Empty repository name → global root namespace
-- Empty path name → repository root
+- Empty mount point → repository root
 - All roots merge into a unified namespace
+
+## ABSOLUTE MOUNTS
+
+Mount points starting with `/` are absolute and ignore the repository name:
+
+```yaml
+Repositories:
+  - Name: local
+    BasePath: ~/workflows
+    Paths:
+      - Mount: /tools      # Accessible as: tools/workflow
+        Path: shared-tools
+      - Mount: /ci/builds  # Accessible as: ci/builds/workflow
+        Path: ci-workflows
+      - Mount: dev         # Accessible as: local/dev/workflow
+        Path: development
+```
+
+Absolute mounts provide precise control over the namespace structure, allowing you to create standard locations like `/shared`, `/tools`, or `/ci` that are accessible without repository prefixes.
 
 ## EXAMPLES
 
@@ -138,9 +160,9 @@ Repositories:
     Type: FileSystem
     BasePath: ~/dotrun.config/projects
     Paths:
-      - Name: dev
+      - Mount: dev
         Path: proj1
-      - Name: test
+      - Mount: test
         Path: proj2
 ```
 
@@ -152,9 +174,9 @@ Repositories:
   - Name: work
     BasePath: ~/company
     Paths:
-      - Name: backend
+      - Mount: backend
         Path: services/backend
-      - Name: frontend
+      - Mount: frontend
         Path: services/frontend
         
   # Root namespace repository
@@ -168,11 +190,11 @@ Repositories:
   - Name: mixed
     BasePath: ~/base
     Paths:
-      - Name: local
+      - Mount: local
         Path: workflows       # ~/base/workflows
-      - Name: system
+      - Mount: system
         Path: /opt/workflows  # /opt/workflows (absolute)
-      - Name: user
+      - Mount: user
         Path: ~/custom       # ~/custom (expanded)
 ```
 
@@ -184,7 +206,7 @@ Repositories:
   - Name: ""
     BasePath: ~/workflows
     Paths:
-      - Name: ""
+      - Mount: ""
         Path: .  # Access as: workflow_name
 ```
 
@@ -198,18 +220,18 @@ Repositories:
   - Name: dev
     BasePath: ~/dev/workflows
     Paths:
-      - Name: ci
+      - Mount: ci
         Path: continuous-integration
-      - Name: cd
+      - Mount: cd
         Path: continuous-deployment
         
   # Production workflows
   - Name: prod
     BasePath: /opt/production
     Paths:
-      - Name: deploy
+      - Mount: deploy
         Path: deployment
-      - Name: monitor
+      - Mount: monitor
         Path: monitoring
         
   # Shared workflows in root namespace

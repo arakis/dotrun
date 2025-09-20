@@ -17,7 +17,7 @@ namespace DotRun.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "execution_status", new[] { "queued", "pending", "started", "failed", "succeeded", "cancelled", "skipped" });
@@ -69,37 +69,6 @@ namespace DotRun.Database.Migrations
                     b.HasIndex("WorkflowRunId");
 
                     b.ToTable("JobRun", (string)null);
-                });
-
-            modelBuilder.Entity("DotRun.Database.ProjectEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Project", (string)null);
                 });
 
             modelBuilder.Entity("DotRun.Database.StepRunEntity", b =>
@@ -159,8 +128,8 @@ namespace DotRun.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                    b.Property<DateTimeOffset?>("DeactivatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("LastRunAt")
                         .HasColumnType("timestamp with time zone");
@@ -170,10 +139,16 @@ namespace DotRun.Database.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("QualifiedPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceHash")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -182,9 +157,14 @@ namespace DotRun.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("YamlFilePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("QualifiedPath")
+                        .IsUnique();
 
                     b.ToTable("Workflow", (string)null);
                 });
@@ -253,17 +233,6 @@ namespace DotRun.Database.Migrations
                         .HasForeignKey("JobRunId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("DotRun.Database.WorkflowEntity", b =>
-                {
-                    b.HasOne("DotRun.Database.ProjectEntity", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("DotRun.Database.WorkflowRunEntity", b =>

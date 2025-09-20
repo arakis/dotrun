@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using DotRun.Runtime;
@@ -17,31 +18,32 @@ public class WorkflowTrackingService : IWorkflowTrackingService
         _logger = logger;
     }
     
+    // Legacy method for backward compatibility
     public async Task<Guid> EnsureWorkflowEntityAsync(string projectName, string workflowName)
     {
+        var qualifiedPath = $"{projectName}/{workflowName}";
+        return await EnsureWorkflowByPathAsync(qualifiedPath);
+    }
+    
+    // New path-based method
+    public async Task<Guid> EnsureWorkflowByPathAsync(string qualifiedPath)
+    {
         var workflow = await _context.Workflow
-            .FirstOrDefaultAsync(w => w.Project.Name == projectName && w.Name == workflowName);
+            .FirstOrDefaultAsync(w => w.QualifiedPath == qualifiedPath && w.DeactivatedAt == null);
             
         if (workflow == null)
         {
-            var project = await _context.Project.FirstOrDefaultAsync(p => p.Name == projectName);
-            if (project == null)
-            {
-                project = new ProjectEntity 
-                { 
-                    Name = projectName,
-                    Slug = projectName
-                };
-                _context.Project.Add(project);
-                await _context.SaveChangesAsync();
-            }
+            // Extract name from path
+            var name = Path.GetFileNameWithoutExtension(qualifiedPath);
             
             workflow = new WorkflowEntity 
             {
-                ProjectId = project.Id,
-                Name = workflowName,
-                Slug = workflowName,
-                IsActive = true
+                Name = name,
+                Slug = qualifiedPath.Replace('/', '-').ToLowerInvariant(),
+                QualifiedPath = qualifiedPath,
+                DeactivatedAt = null,
+                YamlFilePath = "", // Will be updated by sync service
+                SourceHash = "" // Will be updated by sync service
             };
             _context.Workflow.Add(workflow);
         }

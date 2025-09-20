@@ -1,5 +1,6 @@
 using DotRun.Database.Services;
 using DotRun.Runtime.Services.Tracking;
+using DotRun.Runtime.Services.V2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkflowTrackingService, WorkflowTrackingService>();
         services.AddScoped<IJobTrackingService, JobTrackingService>();
         services.AddScoped<IStepTrackingService, StepTrackingService>();
+        
+        // V2 Services - Scoped
+        // New mount-based workflow resolution and syncing
+        services.AddScoped<IWorkflowResolver, WorkflowResolver>();
+        services.AddScoped<IWorkflowSyncService, WorkflowSyncService>();
 
         return services;
     }

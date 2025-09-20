@@ -1,9 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using CommandLine;
+using DotRun.Console.Commands;
 using DotRun.Database.Extensions;
+using DotRun.Database.Services;
 using DotRun.Runtime.Configuration;
 using DotRun.Runtime.Extensions;
+using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Services.Tracking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,13 +20,73 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
-        return await Parser.Default.ParseArguments<CommandLineOptions>(args)
+        return await Parser.Default.ParseArguments<RunCommand, SyncCommand>(args)
             .MapResult(
-                async options => await RunHostAsync(options, args),
+                async (RunCommand runCmd) => await RunHostAsync(runCmd, args),
+                async (SyncCommand syncCmd) => await RunSyncAsync(syncCmd),
                 errors => Task.FromResult((int)ExitCode.InvalidArguments));
     }
 
-    private static async Task<int> RunHostAsync(CommandLineOptions options, string[] args)
+    private static async Task<int> RunSyncAsync(SyncCommand options)
+    {
+        try
+        {
+            // Simple host for sync operation
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddLogging(logging =>
+                    {
+                        logging.ClearProviders();
+                        logging.AddConsole();
+                        logging.SetMinimumLevel(options.LogLevel);
+                    });
+                    
+                    services.AddDotRunDatabase();
+                })
+                .Build();
+                
+            using (var scope = host.Services.CreateScope())
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                var syncService = scope.ServiceProvider.GetRequiredService<IWorkflowSyncService>();
+                
+                // Load V2 config
+                var configPath = Path.GetFullPath(options.ConfigFile);
+                if (!File.Exists(configPath))
+                {
+                    logger.LogError("Configuration file not found: {Path}", configPath);
+                    return (int)ExitCode.ConfigurationError;
+                }
+                
+                var config = DotRunConfigV2.FromFile(configPath);
+                logger.LogInformation("Starting workflow sync from: {Path}", configPath);
+                
+                var result = await syncService.SyncWorkflowsAsync(config);
+                
+                logger.LogInformation("Sync completed: Created={Created}, Updated={Updated}, Reactivated={Reactivated}, Deactivated={Deactivated}",
+                    result.CreatedCount, result.UpdatedCount, result.ReactivatedCount, result.DeactivatedCount);
+                    
+                if (result.Errors.Count > 0)
+                {
+                    logger.LogWarning("Sync completed with {Count} errors", result.Errors.Count);
+                    foreach (var error in result.Errors)
+                    {
+                        logger.LogError("Sync error: {Error}", error);
+                    }
+                }
+                
+                return 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.Error.WriteLine($"Sync failed: {ex.Message}");
+            return (int)ExitCode.UnhandledException;
+        }
+    }
+
+    private static async Task<int> RunHostAsync(RunCommand options, string[] args)
     {
         try
         {

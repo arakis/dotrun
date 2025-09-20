@@ -5,9 +5,12 @@ namespace DotRun.Runtime.Model.V2;
 public class RepositoryPath
 {
     /// <summary>
-    /// Logical name for this path mount. Empty string means mount at repository root.
+    /// Mount point in the logical namespace.
+    /// - Relative mount: "dev" mounts under repository namespace (e.g., repo/dev)
+    /// - Absolute mount: "/tools" mounts at namespace root (ignores repository name)
+    /// - Empty string: mounts at repository root
     /// </summary>
-    public string Name { get; set; } = "";
+    public string Mount { get; set; } = "";
     
     /// <summary>
     /// Physical path relative to repository BasePath, or absolute path (starting with / or ~).

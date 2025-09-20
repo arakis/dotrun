@@ -5,7 +5,6 @@ namespace DotRun.Database;
 
 public class DotRunDbContext : DbContext
 {
-    public DbSet<ProjectEntity> Project { get; set; }
     public DbSet<WorkflowEntity> Workflow { get; set; }
     public DbSet<WorkflowRunEntity> WorkflowRun { get; set; }
     public DbSet<JobRunEntity> JobRun { get; set; }
@@ -30,7 +29,6 @@ public class DotRunDbContext : DbContext
         modelBuilder.HasPostgresEnum<ExecutionStatus>();
         
         // Configure singular table names (remove "Record" suffix)
-        modelBuilder.Entity<ProjectEntity>().ToTable("Project");
         modelBuilder.Entity<WorkflowEntity>().ToTable("Workflow");
         modelBuilder.Entity<WorkflowRunEntity>().ToTable("WorkflowRun");
         modelBuilder.Entity<JobRunEntity>().ToTable("JobRun");
@@ -53,11 +51,7 @@ public class DotRunDbContext : DbContext
         }
 
         // Configure relationships
-        modelBuilder.Entity<WorkflowEntity>()
-            .HasOne(w => w.Project)
-            .WithMany()
-            .HasForeignKey(w => w.ProjectId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Workflow no longer has a relationship with Project
 
 
         modelBuilder.Entity<WorkflowRunEntity>()
@@ -84,6 +78,15 @@ public class DotRunDbContext : DbContext
             .Property(w => w.Name)
             .IsRequired()
             .HasMaxLength(255);
+            
+        modelBuilder.Entity<WorkflowEntity>()
+            .Property(w => w.QualifiedPath)
+            .IsRequired()
+            .HasMaxLength(500);
+            
+        modelBuilder.Entity<WorkflowEntity>()
+            .HasIndex(w => w.QualifiedPath)
+            .IsUnique();
 
         modelBuilder.Entity<JobRunEntity>()
             .Property(j => j.Name)
@@ -92,11 +95,6 @@ public class DotRunDbContext : DbContext
 
         modelBuilder.Entity<StepRunEntity>()
             .Property(s => s.Name)
-            .IsRequired()
-            .HasMaxLength(255);
-
-        modelBuilder.Entity<ProjectEntity>()
-            .Property(p => p.Name)
             .IsRequired()
             .HasMaxLength(255);
     }

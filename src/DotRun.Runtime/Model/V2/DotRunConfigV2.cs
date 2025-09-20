@@ -69,7 +69,7 @@ public class DotRunConfigV2
             {
                 repo.Paths = new List<RepositoryPath>
                 {
-                    new RepositoryPath { Name = "", Path = "." }
+                    new RepositoryPath { Mount = "", Path = "." }
                 };
             }
         }
@@ -84,20 +84,28 @@ public class DotRunConfigV2
         {
             foreach (var path in repo.Paths)
             {
-                var logicalPath = BuildLogicalPath(repo.Name, path.Name);
+                var logicalPath = BuildLogicalPath(repo.Name, path.Mount);
                 var physicalPath = ResolvePath(repo, path);
                 yield return (logicalPath, physicalPath);
             }
         }
     }
     
-    private string BuildLogicalPath(string repoName, string pathName)
+    private string BuildLogicalPath(string repoName, string mount)
     {
+        // Absolute mount - starts with /
+        if (mount?.StartsWith("/") == true)
+        {
+            // Return without leading slash for consistency
+            return mount.TrimStart('/');
+        }
+        
+        // Relative mount under repository
         var parts = new List<string>();
         if (!string.IsNullOrEmpty(repoName))
             parts.Add(repoName);
-        if (!string.IsNullOrEmpty(pathName))
-            parts.Add(pathName);
+        if (!string.IsNullOrEmpty(mount))
+            parts.Add(mount);
             
         return parts.Count > 0 ? string.Join("/", parts) : "";
     }

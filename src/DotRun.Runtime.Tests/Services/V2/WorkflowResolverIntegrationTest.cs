@@ -56,7 +56,7 @@ public class WorkflowResolverIntegrationTest : IDisposable
                     BasePath = _testRoot,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "local", Path = "local" }
+                        new RepositoryPath { Mount = "local", Path = "local" }
                     }
                 },
                 new Repository
@@ -65,7 +65,7 @@ public class WorkflowResolverIntegrationTest : IDisposable
                     BasePath = localPath,
                     Paths = new List<RepositoryPath>
                     {
-                        new RepositoryPath { Name = "", Path = "." }
+                        new RepositoryPath { Mount = "", Path = "." }
                     }
                 }
             }

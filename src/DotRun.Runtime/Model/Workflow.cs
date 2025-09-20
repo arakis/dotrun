@@ -22,6 +22,7 @@ public class Workflow
         {
             if (_Nodes == null)
                 _Nodes = NodesDict.Values.ToList();
+
             return _Nodes;
         }
     }
@@ -38,6 +39,7 @@ public class Workflow
         {
             if (_Jobs == null)
                 _Jobs = JobsDict.Values.ToList();
+
             return _Jobs;
         }
     }
@@ -50,7 +52,8 @@ public class Workflow
 
     [JsonProperty]
     internal string Kind { get; set; }
-    internal string WorkflowFilePath { get; set; }
+
+    public string WorkflowFilePath { get; set; }
     public string Name { get; set; }
 
     public static Workflow FromFile(Project project, string workflowFilePath)
@@ -85,5 +88,4 @@ public class Workflow
 
         return wf;
     }
-
 }

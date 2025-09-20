@@ -116,7 +116,7 @@ public class WorkflowResolver : IWorkflowResolver
         {
             foreach (var path in repo.Paths)
             {
-                var logicalPath = BuildLogicalPath(repo.Name, path.Name);
+                var logicalPath = BuildLogicalPath(repo.Name, path.Mount);
                 if (TryMatchPath(logicalPath, workflowPath, out var workflowFile))
                 {
                     var physicalPath = ResolvePath(repo, path);
@@ -237,13 +237,21 @@ public class WorkflowResolver : IWorkflowResolver
         }
     }
     
-    private string BuildLogicalPath(string repoName, string pathName)
+    private string BuildLogicalPath(string repoName, string mount)
     {
+        // Absolute mount - starts with /
+        if (mount?.StartsWith("/") == true)
+        {
+            // Return without leading slash for consistency
+            return mount.TrimStart('/');
+        }
+        
+        // Relative mount under repository
         var parts = new List<string>();
         if (!string.IsNullOrEmpty(repoName))
             parts.Add(repoName);
-        if (!string.IsNullOrEmpty(pathName))
-            parts.Add(pathName);
+        if (!string.IsNullOrEmpty(mount))
+            parts.Add(mount);
             
         return parts.Count > 0 ? string.Join("/", parts) : "";
     }
