@@ -46,7 +46,7 @@ public class WorkflowResolverIntegrationTest : IDisposable
         CreateWorkflow(localPath, "root.yaml");
         
         // Create config with repository structure
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -87,7 +87,7 @@ public class WorkflowResolverIntegrationTest : IDisposable
         }
     }
     
-    private void AssertWorkflowResolution(DotRunConfigV2 config, string mountPath, string expectedRepo, string expectedWorkflowPath)
+    private void AssertWorkflowResolution(DotRunConfig config, string mountPath, string expectedRepo, string expectedWorkflowPath)
     {
         var result = _resolver.GetWorkflowByMountPath(config, mountPath);
         

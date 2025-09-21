@@ -8,14 +8,14 @@ namespace DotRun.WebServer.Services;
 
 public interface IDotRunConfigService
 {
-    DotRunConfigV2 GetConfiguration();
+    DotRunConfig GetConfiguration();
 }
 
 public class DotRunConfigService : IDotRunConfigService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<DotRunConfigService> _logger;
-    private DotRunConfigV2 _cachedConfig;
+    private DotRunConfig _cachedConfig;
     private readonly object _lock = new object();
 
     public DotRunConfigService(IConfiguration configuration, ILogger<DotRunConfigService> logger)
@@ -24,7 +24,7 @@ public class DotRunConfigService : IDotRunConfigService
         _logger = logger;
     }
 
-    public DotRunConfigV2 GetConfiguration()
+    public DotRunConfig GetConfiguration()
     {
         lock (_lock)
         {
@@ -51,20 +51,20 @@ public class DotRunConfigService : IDotRunConfigService
             if (!File.Exists(configPath))
             {
                 _logger.LogWarning("Configuration file not found at {ConfigPath}, using empty configuration", configPath);
-                _cachedConfig = new DotRunConfigV2();
+                _cachedConfig = new DotRunConfig();
                 return _cachedConfig;
             }
 
             try
             {
-                _cachedConfig = DotRunConfigV2.FromFile(configPath);
+                _cachedConfig = DotRunConfig.FromFile(configPath);
                 _logger.LogInformation("Successfully loaded DotRun configuration with {Count} repositories", 
                     _cachedConfig.Repositories?.Count ?? 0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load configuration from {ConfigPath}", configPath);
-                _cachedConfig = new DotRunConfigV2();
+                _cachedConfig = new DotRunConfig();
             }
 
             return _cachedConfig;

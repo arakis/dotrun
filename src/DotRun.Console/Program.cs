@@ -59,7 +59,7 @@ class Program
                     return (int)ExitCode.ConfigurationError;
                 }
                 
-                var config = DotRunConfigV2.FromFile(configPath);
+                var config = DotRunConfig.FromFile(configPath);
                 logger.LogInformation("Starting workflow sync from: {Path}", configPath);
                 
                 var result = await syncService.SyncWorkflowsAsync(config);

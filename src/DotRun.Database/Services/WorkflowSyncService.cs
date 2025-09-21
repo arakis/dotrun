@@ -30,7 +30,7 @@ public class WorkflowSyncService : IWorkflowSyncService
         _workflowResolver = workflowResolver;
     }
 
-    public async Task<WorkflowSyncResult> SyncWorkflowsAsync(DotRunConfigV2 config)
+    public async Task<WorkflowSyncResult> SyncWorkflowsAsync(DotRunConfig config)
     {
         var result = new WorkflowSyncResult();
         var discoveredPaths = new HashSet<string>();
@@ -156,7 +156,7 @@ public class WorkflowSyncService : IWorkflowSyncService
         return result;
     }
 
-    public async Task<WorkflowSyncResult> SyncSingleWorkflowAsync(DotRunConfigV2 config, string qualifiedPath)
+    public async Task<WorkflowSyncResult> SyncSingleWorkflowAsync(DotRunConfig config, string qualifiedPath)
     {
         var result = new WorkflowSyncResult();
 

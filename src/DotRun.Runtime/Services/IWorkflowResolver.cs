@@ -15,7 +15,7 @@ public interface IWorkflowResolver
     /// - Reference: The workflow's reference object with repository, path, and workflow name
     /// Same workflow can appear multiple times if accessible via different mounts.
     /// </returns>
-    IList<(string MountPath, WorkflowReference Reference)> ListWorkflowMountPaths(DotRunConfigV2 config);
+    IList<(string MountPath, WorkflowReference Reference)> ListWorkflowMountPaths(DotRunConfig config);
 
     /// <summary>
     /// Lists all unique workflow references by directly traversing repository base paths.
@@ -25,7 +25,7 @@ public interface IWorkflowResolver
     /// A list of unique WorkflowReference objects found across all repositories.
     /// This method never touches mount points - it performs pure repository structure traversal.
     /// </returns>
-    IList<WorkflowReference> ListWorkflowReferences(DotRunConfigV2 config);
+    IList<WorkflowReference> ListWorkflowReferences(DotRunConfig config);
 
     /// <summary>
     /// Gets a workflow by its mount-relative path.
@@ -37,7 +37,7 @@ public interface IWorkflowResolver
     /// - Workflow: The loaded workflow object, or null if not found
     /// - Reference: The workflow's reference object, or null if not found
     /// </returns>
-    (Workflow Workflow, WorkflowReference Reference) GetWorkflowByMountPath(DotRunConfigV2 config, string mountPath);
+    (Workflow Workflow, WorkflowReference Reference) GetWorkflowByMountPath(DotRunConfig config, string mountPath);
 
     /// <summary>
     /// Gets a workflow by its WorkflowReference.
@@ -48,5 +48,5 @@ public interface IWorkflowResolver
     /// The loaded workflow object, or null if not found.
     /// This method never iterates mount points - it uses direct path resolution from the repository base path.
     /// </returns>
-    Workflow GetWorkflowByReference(DotRunConfigV2 config, WorkflowReference reference);
+    Workflow GetWorkflowByReference(DotRunConfig config, WorkflowReference reference);
 }

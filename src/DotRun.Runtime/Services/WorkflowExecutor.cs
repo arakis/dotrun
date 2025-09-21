@@ -27,7 +27,7 @@ public class WorkflowExecutor : IWorkflowExecutor
     }
 
     public async Task<WorkflowResult> ExecuteAsync(
-        DotRunConfig config,
+        DotRunConfigLegacy configLegacy,
         string projectName,
         string workflowName,
         CancellationToken cancellationToken = default)
@@ -38,13 +38,13 @@ public class WorkflowExecutor : IWorkflowExecutor
                 projectName, workflowName);
 
             // Validate project and workflow exist
-            if (!_projectResolver.ValidateProject(config, projectName))
+            if (!_projectResolver.ValidateProject(configLegacy, projectName))
             {
                 _logger.LogError("Project not found: {Project}", projectName);
                 throw new InvalidOperationException($"Project '{projectName}' not found");
             }
 
-            var project = _projectResolver.GetProject(config, projectName);
+            var project = _projectResolver.GetProject(configLegacy, projectName);
 
             if (!_projectResolver.ValidateWorkflow(project, workflowName))
             {

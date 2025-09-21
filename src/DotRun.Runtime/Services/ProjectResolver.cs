@@ -12,17 +12,17 @@ public class ProjectResolver : IProjectResolver
         _logger = logger;
     }
 
-    public Project GetProject(DotRunConfig config, string projectName)
+    public Project GetProject(DotRunConfigLegacy configLegacy, string projectName)
     {
         _logger.LogDebug("Resolving project: {ProjectName}", projectName);
 
-        if (config?.Projects == null)
+        if (configLegacy?.Projects == null)
         {
             _logger.LogError("Configuration or projects collection is null");
             return null;
         }
 
-        var project = config.Projects[projectName];
+        var project = configLegacy.Projects[projectName];
         if (project == null)
         {
             _logger.LogError("Project not found: {ProjectName}", projectName);
@@ -56,7 +56,7 @@ public class ProjectResolver : IProjectResolver
         return workflow;
     }
 
-    public bool ValidateProject(DotRunConfig config, string projectName)
+    public bool ValidateProject(DotRunConfigLegacy configLegacy, string projectName)
     {
         if (string.IsNullOrWhiteSpace(projectName))
         {
@@ -64,19 +64,19 @@ public class ProjectResolver : IProjectResolver
             return false;
         }
 
-        if (config?.Projects == null)
+        if (configLegacy?.Projects == null)
         {
             _logger.LogError("Configuration or projects collection is null");
             return false;
         }
 
-        bool exists = config.Projects[projectName] != null;
+        bool exists = configLegacy.Projects[projectName] != null;
 
         if (!exists)
         {
             _logger.LogWarning("Project validation failed: {ProjectName} not found", projectName);
             _logger.LogDebug("Available projects: {Projects}",
-                string.Join(", ", config.Projects.Select(p => p.Name)));
+                string.Join(", ", configLegacy.Projects.Select(p => p.Name)));
         }
 
         return exists;

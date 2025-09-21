@@ -42,7 +42,7 @@ public class AbsoluteMountTests : IDisposable
         var dir = CreateTestDirectory("tools");
         CreateWorkflowFile(dir, "deploy.yaml");
         
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -77,7 +77,7 @@ public class AbsoluteMountTests : IDisposable
         CreateWorkflowFile(toolsDir, "shared.yaml");
         CreateWorkflowFile(devDir, "build.yaml");
         
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -117,7 +117,7 @@ public class AbsoluteMountTests : IDisposable
         Directory.CreateDirectory(buildsDir);
         CreateWorkflowFile(buildsDir, "test.yaml");
         
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -151,7 +151,7 @@ public class AbsoluteMountTests : IDisposable
         CreateWorkflowFile(toolsDir, "deploy.yaml");
         CreateWorkflowFile(localDir, "test.yaml");
         
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -185,7 +185,7 @@ public class AbsoluteMountTests : IDisposable
         var rootDir = CreateTestDirectory("root");
         CreateWorkflowFile(rootDir, "global.yaml");
         
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {

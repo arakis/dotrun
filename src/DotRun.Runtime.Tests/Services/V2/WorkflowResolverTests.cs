@@ -39,7 +39,7 @@ public class WorkflowResolverTests : IDisposable
     public void GetWorkflowByMountPath_WithEmptyPath_ReturnsNull()
     {
         // Arrange
-        var config = new DotRunConfigV2();
+        var config = new DotRunConfig();
 
         // Act
         var result = _resolver.GetWorkflowByMountPath(config, "");
@@ -53,7 +53,7 @@ public class WorkflowResolverTests : IDisposable
     public void GetWorkflowByMountPath_WithNullPath_ReturnsNull()
     {
         // Arrange
-        var config = new DotRunConfigV2();
+        var config = new DotRunConfig();
 
         // Act
         var result = _resolver.GetWorkflowByMountPath(config, null);
@@ -70,7 +70,7 @@ public class WorkflowResolverTests : IDisposable
         var workflowDir = CreateTestDirectory("workflows");
         CreateWorkflowFile(workflowDir, "demo.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -104,7 +104,7 @@ public class WorkflowResolverTests : IDisposable
         Directory.CreateDirectory(projectDir);
         CreateWorkflowFile(projectDir, "build.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -138,7 +138,7 @@ public class WorkflowResolverTests : IDisposable
         Directory.CreateDirectory(subDir);
         CreateWorkflowFile(subDir, "test.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -171,7 +171,7 @@ public class WorkflowResolverTests : IDisposable
         var absoluteDir = CreateTestDirectory("absolute");
         CreateWorkflowFile(absoluteDir, "deploy.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -206,7 +206,7 @@ public class WorkflowResolverTests : IDisposable
         var dir2 = CreateTestDirectory("repo2");
         CreateWorkflowFile(dir2, "unique.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -250,7 +250,7 @@ public class WorkflowResolverTests : IDisposable
         CreateWorkflowFile(dir1, "common.yaml");
         CreateWorkflowFile(dir2, "common.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -299,7 +299,7 @@ public class WorkflowResolverTests : IDisposable
         CreateWorkflowFile(subDir1, "sub1.yaml");
         CreateWorkflowFile(subDir2, "deep.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -333,7 +333,7 @@ public class WorkflowResolverTests : IDisposable
         var dir = CreateTestDirectory("validate");
         CreateWorkflowFile(dir, "exists.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -363,7 +363,7 @@ public class WorkflowResolverTests : IDisposable
         // Arrange
         var dir = CreateTestDirectory("validate");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -396,7 +396,7 @@ public class WorkflowResolverTests : IDisposable
         CreateWorkflowFile(dir1, "build.yaml");
         CreateWorkflowFile(dir2, "build.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -438,7 +438,7 @@ public class WorkflowResolverTests : IDisposable
         var dir = CreateTestDirectory("root");
         CreateWorkflowFile(dir, "global.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {
@@ -471,7 +471,7 @@ public class WorkflowResolverTests : IDisposable
         var dir = CreateTestDirectory("reporoot");
         CreateWorkflowFile(dir, "workflow.yaml");
 
-        var config = new DotRunConfigV2
+        var config = new DotRunConfig
         {
             Repositories = new List<Repository>
             {

@@ -6,7 +6,7 @@ namespace DotRun.Runtime.Services;
 public interface IWorkflowExecutor
 {
     Task<WorkflowResult> ExecuteAsync(
-        DotRunConfig config,
+        DotRunConfigLegacy configLegacy,
         string projectName,
         string workflowName,
         CancellationToken cancellationToken = default);

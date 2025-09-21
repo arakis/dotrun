@@ -17,7 +17,7 @@ public class WorkflowResolver : IWorkflowResolver
     }
 
     /// <inheritdoc />
-    public IList<(string MountPath, WorkflowReference Reference)> ListWorkflowMountPaths(DotRunConfigV2 config)
+    public IList<(string MountPath, WorkflowReference Reference)> ListWorkflowMountPaths(DotRunConfig config)
     {
         var results = new List<(string MountPath, WorkflowReference Reference)>();
 
@@ -55,7 +55,7 @@ public class WorkflowResolver : IWorkflowResolver
     }
 
     /// <inheritdoc />
-    public IList<WorkflowReference> ListWorkflowReferences(DotRunConfigV2 config)
+    public IList<WorkflowReference> ListWorkflowReferences(DotRunConfig config)
     {
         var references = new List<WorkflowReference>();
 
@@ -90,7 +90,7 @@ public class WorkflowResolver : IWorkflowResolver
     }
 
     /// <inheritdoc />
-    public (Workflow Workflow, WorkflowReference Reference) GetWorkflowByMountPath(DotRunConfigV2 config, string mountPath)
+    public (Workflow Workflow, WorkflowReference Reference) GetWorkflowByMountPath(DotRunConfig config, string mountPath)
     {
         if (string.IsNullOrWhiteSpace(mountPath))
         {
@@ -159,7 +159,7 @@ public class WorkflowResolver : IWorkflowResolver
     }
 
     /// <inheritdoc />
-    public Workflow GetWorkflowByReference(DotRunConfigV2 config, WorkflowReference reference)
+    public Workflow GetWorkflowByReference(DotRunConfig config, WorkflowReference reference)
     {
         var repository = config.Repositories.FirstOrDefault(r => r.Name == reference.Repository);
         if (repository == null)
@@ -193,7 +193,7 @@ public class WorkflowResolver : IWorkflowResolver
         return null;
     }
 
-    private WorkflowReference BuildWorkflowReferenceFromMount(DotRunConfigV2 config, string mountLogicalPath, string relativePath)
+    private WorkflowReference BuildWorkflowReferenceFromMount(DotRunConfig config, string mountLogicalPath, string relativePath)
     {
         var workflowName = Path.GetFileNameWithoutExtension(relativePath);
         var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');

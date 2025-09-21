@@ -14,7 +14,7 @@ public class ConfigurationLoader : IConfigurationLoader
         _logger = logger;
     }
 
-    public Task<DotRunConfig> LoadAsync(string configFilePath)
+    public Task<DotRunConfigLegacy> LoadAsync(string configFilePath)
     {
         try
         {
@@ -33,7 +33,7 @@ public class ConfigurationLoader : IConfigurationLoader
                 throw new FileNotFoundException($"Configuration file not found: {configFilePath}", configFilePath);
             }
 
-            var config = DotRunConfig.FromFile(configFilePath);
+            var config = DotRunConfigLegacy.FromFile(configFilePath);
 
             _logger.LogInformation("Configuration loaded successfully from {ConfigFile}", configFilePath);
             _logger.LogDebug("Projects found: {ProjectCount}", config.Projects?.Count ?? 0);
@@ -47,9 +47,9 @@ public class ConfigurationLoader : IConfigurationLoader
         }
     }
 
-    public Task<bool> ValidateAsync(DotRunConfig config)
+    public Task<bool> ValidateAsync(DotRunConfigLegacy configLegacy)
     {
-        if (config == null)
+        if (configLegacy == null)
         {
             _logger.LogError("Configuration is null");
             return Task.FromResult(false);
@@ -57,18 +57,18 @@ public class ConfigurationLoader : IConfigurationLoader
 
         bool isValid = true;
 
-        if (string.IsNullOrWhiteSpace(config.ConfigDirectory))
+        if (string.IsNullOrWhiteSpace(configLegacy.ConfigDirectory))
         {
             _logger.LogError("Configuration directory is not set");
             isValid = false;
         }
 
-        if (!Directory.Exists(config.ProjectsRootDirectory))
+        if (!Directory.Exists(configLegacy.ProjectsRootDirectory))
         {
-            _logger.LogWarning("Projects root directory does not exist: {Directory}", config.ProjectsRootDirectory);
+            _logger.LogWarning("Projects root directory does not exist: {Directory}", configLegacy.ProjectsRootDirectory);
         }
 
-        if (config.Projects == null || config.Projects.Count == 0)
+        if (configLegacy.Projects == null || configLegacy.Projects.Count == 0)
         {
             _logger.LogWarning("No projects found in configuration");
         }

@@ -5,8 +5,8 @@ namespace DotRun.Runtime.Services.Tracking;
 
 public interface IWorkflowSyncService
 {
-    Task<WorkflowSyncResult> SyncWorkflowsAsync(DotRunConfigV2 config);
-    Task<WorkflowSyncResult> SyncSingleWorkflowAsync(DotRunConfigV2 config, string qualifiedPath);
+    Task<WorkflowSyncResult> SyncWorkflowsAsync(DotRunConfig config);
+    Task<WorkflowSyncResult> SyncSingleWorkflowAsync(DotRunConfig config, string qualifiedPath);
 }
 
 public class WorkflowSyncResult
