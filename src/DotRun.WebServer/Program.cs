@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using DotRun.WebServer;
 using DotRun.Database.Extensions;
 using DotRun.WebServer.Services;
-using DotRun.Runtime.Services.V2;
+using DotRun.Runtime.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

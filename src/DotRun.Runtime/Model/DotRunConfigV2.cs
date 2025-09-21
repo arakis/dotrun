@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DotRun.Runtime.Model.V2;
+namespace DotRun.Runtime.Model;
 
 public class DotRunConfigV2
 {

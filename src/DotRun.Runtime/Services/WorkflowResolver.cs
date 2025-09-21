@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Model;
 using Microsoft.Extensions.Logging;
 
-namespace DotRun.Runtime.Services.V2;
+namespace DotRun.Runtime.Services;
 
 public class WorkflowResolver : IWorkflowResolver
 {

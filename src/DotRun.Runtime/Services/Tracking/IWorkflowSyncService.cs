@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Model;
 
 namespace DotRun.Runtime.Services.Tracking;
 

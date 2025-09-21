@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

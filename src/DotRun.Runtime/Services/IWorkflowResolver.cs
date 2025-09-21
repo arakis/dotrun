@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Model;
 
-namespace DotRun.Runtime.Services.V2;
+namespace DotRun.Runtime.Services;
 
 public interface IWorkflowResolver
 {

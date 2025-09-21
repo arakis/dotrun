@@ -7,7 +7,7 @@ using DotRun.Database.Extensions;
 using DotRun.Database.Services;
 using DotRun.Runtime.Configuration;
 using DotRun.Runtime.Extensions;
-using DotRun.Runtime.Model.V2;
+using DotRun.Runtime.Model;
 using DotRun.Runtime.Services.Tracking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

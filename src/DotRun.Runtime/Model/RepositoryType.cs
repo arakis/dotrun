@@ -1,4 +1,4 @@
-namespace DotRun.Runtime.Model.V2;
+namespace DotRun.Runtime.Model;
 
 public enum RepositoryType
 {

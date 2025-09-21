@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using DotRun.Runtime;
-using DotRun.Runtime.Model.V2;
-using DotRun.Runtime.Services.V2;
+using DotRun.Runtime.Model;
+using DotRun.Runtime.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
