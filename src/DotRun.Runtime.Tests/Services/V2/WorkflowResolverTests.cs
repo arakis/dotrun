@@ -187,8 +187,8 @@ public class WorkflowResolverTests : IDisposable
             }
         };
 
-        // Act - using mount path without repo prefix
-        var result = _resolver.GetWorkflowByMountPath(config, "deploy");
+        // Act - using mount path with full mount path
+        var result = _resolver.GetWorkflowByMountPath(config, "ops/prod/deploy");
 
         // Assert
         Assert.NotNull(result.Workflow);
@@ -232,12 +232,13 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetWorkflowByMountPath(config, "unique");
+        var result = _resolver.GetWorkflowByMountPath(config, "second/unique");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("unique", result.Workflow.Name);
         Assert.NotNull(result.Reference);
+        Assert.Equal("second", result.Reference.Repository);
     }
 
     [Fact]
@@ -275,13 +276,13 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetWorkflowByMountPath(config, "common");
+        var result = _resolver.GetWorkflowByMountPath(config, "first/common");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.NotNull(result.Reference);
-        // Should log a warning about multiple matches - NSubstitute doesn't have direct Log verification
-        // so we just verify the result is not null
+        Assert.Equal("first", result.Reference.Repository);
+        Assert.Equal("common", result.Reference.Workflow);
     }
 
     [Fact]
@@ -320,9 +321,9 @@ public class WorkflowResolverTests : IDisposable
         // Assert
         Assert.Equal(3, mountPaths.Count);
         var paths = mountPaths.Select(mp => mp.MountPath).ToList();
-        Assert.Contains("root", paths);
-        Assert.Contains("workflows/sub1", paths);
-        Assert.Contains("more/nested/deep", paths);
+        Assert.Contains("test/all/root", paths);
+        Assert.Contains("test/all/workflows/sub1", paths);
+        Assert.Contains("test/all/more/nested/deep", paths);
     }
 
     [Fact]
@@ -487,7 +488,7 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetWorkflowByMountPath(config, "workflow"); // Mount path access
+        var result = _resolver.GetWorkflowByMountPath(config, "myrepo/workflow"); // Mount path access
 
         // Assert
         Assert.NotNull(result.Workflow);

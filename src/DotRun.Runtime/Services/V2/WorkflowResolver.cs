@@ -98,18 +98,44 @@ public class WorkflowResolver : IWorkflowResolver
             return (null, null);
         }
 
+        // Local function to build possible workflow file paths
+        string[] BuildPossibleWorkflowPaths(string basePath, string workflowPath)
+        {
+            return new[]
+            {
+                Path.Combine(basePath, workflowPath + ".yaml"),
+                Path.Combine(basePath, workflowPath + ".yml"),
+                Path.Combine(basePath, workflowPath.Replace('/', Path.DirectorySeparatorChar) + ".yaml"),
+                Path.Combine(basePath, workflowPath.Replace('/', Path.DirectorySeparatorChar) + ".yml")
+            };
+        }
+
         foreach (var (mountLogicalPath, mountPhysicalPath) in config.GetAllMountPoints())
         {
             if (!Directory.Exists(mountPhysicalPath))
                 continue;
 
-            var possiblePaths = new[]
+            // Check if the requested mount path is accessible via this mount
+            // For root mount (""), any path is directly accessible
+            // For non-root mounts, the path must start with the mount's logical path
+            string relativeMountPath;
+            if (!string.IsNullOrEmpty(mountLogicalPath))
             {
-                Path.Combine(mountPhysicalPath, mountPath + ".yaml"),
-                Path.Combine(mountPhysicalPath, mountPath + ".yml"),
-                Path.Combine(mountPhysicalPath, mountPath.Replace('/', Path.DirectorySeparatorChar) + ".yaml"),
-                Path.Combine(mountPhysicalPath, mountPath.Replace('/', Path.DirectorySeparatorChar) + ".yml")
-            };
+                if (!mountPath.StartsWith(mountLogicalPath + "/") && mountPath != mountLogicalPath)
+                    continue;
+                    
+                // Strip the mount prefix to get the relative path within the mount
+                relativeMountPath = mountPath == mountLogicalPath
+                    ? ""
+                    : mountPath.Substring(mountLogicalPath.Length + 1);
+            }
+            else
+            {
+                // Root mount - the mount path is used directly
+                relativeMountPath = mountPath;
+            }
+
+            var possiblePaths = BuildPossibleWorkflowPaths(mountPhysicalPath, relativeMountPath);
 
             foreach (var possiblePath in possiblePaths)
             {
@@ -151,14 +177,10 @@ public class WorkflowResolver : IWorkflowResolver
         
         var basePath = Path.Combine(pathParts.ToArray());
         
-        var possiblePaths = new[]
+        // Try both .yaml and .yml extensions
+        foreach (var extension in new[] { ".yaml", ".yml" })
         {
-            basePath + ".yaml",
-            basePath + ".yml"
-        };
-
-        foreach (var possiblePath in possiblePaths)
-        {
+            var possiblePath = basePath + extension;
             var workflow = TryLoadWorkflow(possiblePath);
             if (workflow != null)
             {

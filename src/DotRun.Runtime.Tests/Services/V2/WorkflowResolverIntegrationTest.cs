@@ -72,10 +72,10 @@ public class WorkflowResolverIntegrationTest : IDisposable
         };
         
         // Test various resolution patterns using mount paths
-        // When searching for "test", it finds it in dev subdirectory
-        AssertWorkflowResolution(config, "dev/test", "main", "dev/test");
-        // "compile" is in ci/build subdirectory
-        AssertWorkflowResolution(config, "ci/build/compile", "main", "ci/build/compile");
+        // When searching for "test", it finds it in dev subdirectory via root mount
+        AssertWorkflowResolution(config, "dev/test", "", "dev/test");
+        // "compile" is in ci/build subdirectory via root mount
+        AssertWorkflowResolution(config, "ci/build/compile", "", "ci/build/compile");
         // "root" is at root of mount
         AssertWorkflowResolution(config, "root", "", "root");
         
