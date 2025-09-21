@@ -32,10 +32,11 @@ public class WorkflowController : Controller
         
         // Get configuration and list all workflows dynamically
         var config = _configService.GetConfiguration();
-        var workflowPaths = _workflowResolver.ListWorkflows(config).ToList();
+        var mountPaths = _workflowResolver.ListWorkflowMountPaths(config);
+        var workflowPaths = mountPaths.Select(mp => mp.MountPath).ToList();
         
         // Check if the path matches a workflow
-        if (_workflowResolver.ValidateWorkflow(config, path))
+        if (mountPaths.Any(mp => mp.MountPath == path))
         {
             return ShowWorkflow(path);
         }
@@ -126,7 +127,8 @@ public class WorkflowController : Controller
         try
         {
             // Get the workflow using the resolver
-            var (workflow, qualifiedPath) = _workflowResolver.GetByPath(config, workflowPath);
+            var (workflow, reference) = _workflowResolver.GetWorkflowByMountPath(config, workflowPath);
+            var qualifiedPath = reference?.ToString();
             
             if (workflow != null)
             {

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using DotRun.Runtime;
 using DotRun.Runtime.Services.Tracking;
 using DotRun.Runtime.Model.V2;
 using DotRun.Runtime.Services.V2;
@@ -37,19 +38,20 @@ public class WorkflowSyncService : IWorkflowSyncService
         try
         {
             // Discover all workflows from mounted paths
-            var workflowsPaths = _workflowResolver.ListWorkflows(config).ToList();
-            result.DiscoveredCount = workflowsPaths.Count;
+            var mountPaths = _workflowResolver.ListWorkflowMountPaths(config);
+            result.DiscoveredCount = mountPaths.Count;
             
-            _logger.LogInformation("Discovered {Count} workflows", workflowsPaths.Count);
+            _logger.LogInformation("Discovered {Count} workflows", mountPaths.Count);
 
             // Process each discovered workflow
-            foreach (var qualifiedPath in workflowsPaths)
+            foreach (var (mountPath, reference) in mountPaths)
             {
+                var qualifiedPath = reference.ToString();
                 discoveredPaths.Add(qualifiedPath);
                 
                 try
                 {
-                    var (workflow, path) = _workflowResolver.GetByPath(config, qualifiedPath);
+                    var workflow = _workflowResolver.GetWorkflowByReference(config, reference);
                     if (workflow == null)
                     {
                         _logger.LogWarning("Could not resolve workflow for path: {Path}", qualifiedPath);
@@ -160,7 +162,9 @@ public class WorkflowSyncService : IWorkflowSyncService
 
         try
         {
-            var (workflow, path) = _workflowResolver.GetByPath(config, qualifiedPath);
+            // Parse the qualified path to get a reference
+            var reference = WorkflowReference.Parse(qualifiedPath);
+            var workflow = _workflowResolver.GetWorkflowByReference(config, reference);
             if (workflow == null)
             {
                 // Mark as deactivated if it exists in database

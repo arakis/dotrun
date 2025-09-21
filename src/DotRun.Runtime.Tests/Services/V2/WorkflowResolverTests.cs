@@ -36,35 +36,35 @@ public class WorkflowResolverTests : IDisposable
     }
 
     [Fact]
-    public void GetByPath_WithEmptyPath_ReturnsNull()
+    public void GetWorkflowByMountPath_WithEmptyPath_ReturnsNull()
     {
         // Arrange
         var config = new DotRunConfigV2();
 
         // Act
-        var result = _resolver.GetByPath(config, "");
+        var result = _resolver.GetWorkflowByMountPath(config, "");
 
         // Assert
         Assert.Null(result.Workflow);
-        Assert.Null(result.QualifiedPath);
+        Assert.Null(result.Reference);
     }
 
     [Fact]
-    public void GetByPath_WithNullPath_ReturnsNull()
+    public void GetWorkflowByMountPath_WithNullPath_ReturnsNull()
     {
         // Arrange
         var config = new DotRunConfigV2();
 
         // Act
-        var result = _resolver.GetByPath(config, null);
+        var result = _resolver.GetWorkflowByMountPath(config, null);
 
         // Assert
         Assert.Null(result.Workflow);
-        Assert.Null(result.QualifiedPath);
+        Assert.Null(result.Reference);
     }
 
     [Fact]
-    public void GetByPath_SimpleWorkflowInRoot_FindsWorkflow()
+    public void GetWorkflowByMountPath_SimpleWorkflowInRoot_FindsWorkflow()
     {
         // Arrange
         var workflowDir = CreateTestDirectory("workflows");
@@ -87,16 +87,16 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "demo");
+        var result = _resolver.GetWorkflowByMountPath(config, "demo");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("demo", result.Workflow.Name);
-        Assert.Equal("demo", result.QualifiedPath);
+        Assert.Equal("demo", result.Reference.Workflow);
     }
 
     [Fact]
-    public void GetByPath_WorkflowWithRepoAndPath_FindsWorkflow()
+    public void GetWorkflowByReference_WorkflowWithRepoAndPath_FindsWorkflow()
     {
         // Arrange
         var baseDir = CreateTestDirectory("base");
@@ -120,13 +120,13 @@ public class WorkflowResolverTests : IDisposable
             }
         };
 
-        // Act
-        var result = _resolver.GetByPath(config, "local/dev/build");
+        // Act - using reference API now
+        var reference = new WorkflowReference { Repository = "local", Path = "projects/proj1", Workflow = "build" };
+        var workflow = _resolver.GetWorkflowByReference(config, reference);
 
         // Assert
-        Assert.NotNull(result.Workflow);
-        Assert.Equal("build", result.Workflow.Name);
-        Assert.Equal("local/dev/build", result.QualifiedPath);
+        Assert.NotNull(workflow);
+        Assert.Equal("build", workflow.Name);
     }
 
     [Fact]
@@ -155,16 +155,17 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "ci/test");
+        var result = _resolver.GetWorkflowByMountPath(config, "ci/test");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("test", result.Workflow.Name);
-        Assert.Equal("ci/test", result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal("test", result.Reference.Workflow);
     }
 
     [Fact]
-    public void GetByPath_AbsolutePath_ResolvesCorrectly()
+    public void GetWorkflowByMountPath_AbsolutePath_ResolvesCorrectly()
     {
         // Arrange
         var absoluteDir = CreateTestDirectory("absolute");
@@ -186,13 +187,15 @@ public class WorkflowResolverTests : IDisposable
             }
         };
 
-        // Act
-        var result = _resolver.GetByPath(config, "ops/prod/deploy");
+        // Act - using mount path without repo prefix
+        var result = _resolver.GetWorkflowByMountPath(config, "deploy");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("deploy", result.Workflow.Name);
-        Assert.Equal("ops/prod/deploy", result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal("ops", result.Reference.Repository);
+        Assert.Equal("deploy", result.Reference.Workflow);
     }
 
     [Fact]
@@ -229,12 +232,12 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "unique");
+        var result = _resolver.GetWorkflowByMountPath(config, "unique");
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("unique", result.Workflow.Name);
-        Assert.NotNull(result.QualifiedPath);
+        Assert.NotNull(result.Reference);
     }
 
     [Fact]
@@ -272,11 +275,11 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "common");
+        var result = _resolver.GetWorkflowByMountPath(config, "common");
 
         // Assert
         Assert.NotNull(result.Workflow);
-        Assert.NotNull(result.QualifiedPath);
+        Assert.NotNull(result.Reference);
         // Should log a warning about multiple matches - NSubstitute doesn't have direct Log verification
         // so we just verify the result is not null
     }
@@ -312,17 +315,18 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var workflows = _resolver.ListWorkflows(config).ToList();
+        var mountPaths = _resolver.ListWorkflowMountPaths(config);
 
         // Assert
-        Assert.Equal(3, workflows.Count);
-        Assert.Contains("test/all/root", workflows);
-        Assert.Contains("test/all/workflows/sub1", workflows);
-        Assert.Contains("test/all/more/nested/deep", workflows);
+        Assert.Equal(3, mountPaths.Count);
+        var paths = mountPaths.Select(mp => mp.MountPath).ToList();
+        Assert.Contains("root", paths);
+        Assert.Contains("workflows/sub1", paths);
+        Assert.Contains("more/nested/deep", paths);
     }
 
     [Fact]
-    public void ValidateWorkflow_ExistingWorkflow_ReturnsTrue()
+    public void GetWorkflowByMountPath_ExistingWorkflow_ReturnsWorkflow()
     {
         // Arrange
         var dir = CreateTestDirectory("validate");
@@ -345,14 +349,15 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.ValidateWorkflow(config, "exists");
+        var result = _resolver.GetWorkflowByMountPath(config, "exists");
 
         // Assert
-        Assert.True(result);
+        Assert.NotNull(result.Workflow);
+        Assert.NotNull(result.Reference);
     }
 
     [Fact]
-    public void ValidateWorkflow_NonExistentWorkflow_ReturnsFalse()
+    public void GetWorkflowByMountPath_NonExistentWorkflow_ReturnsNull()
     {
         // Arrange
         var dir = CreateTestDirectory("validate");
@@ -374,14 +379,15 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.ValidateWorkflow(config, "nothere");
+        var result = _resolver.GetWorkflowByMountPath(config, "nothere");
 
         // Assert
-        Assert.False(result);
+        Assert.Null(result.Workflow);
+        Assert.Null(result.Reference);
     }
 
     [Fact]
-    public void FindWorkflows_ReturnsAllMatches()
+    public void ListWorkflowMountPaths_ReturnsAllMatchingWorkflows()
     {
         // Arrange
         var dir1 = CreateTestDirectory("repo1");
@@ -415,11 +421,13 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var results = _resolver.FindWorkflows(config, "build").ToList();
+        var mountPaths = _resolver.ListWorkflowMountPaths(config);
 
-        // Assert - The resolver may find workflows through different paths
-        Assert.True(results.Count >= 2);
-        Assert.Contains(results, r => r.QualifiedPath.Contains("build"));
+        // Assert - Should find build workflow accessible from both mount points
+        var buildWorkflows = mountPaths.Where(mp => mp.Reference.Workflow == "build").ToList();
+        Assert.Equal(2, buildWorkflows.Count);
+        Assert.Contains(buildWorkflows, mp => mp.Reference.Repository == "first");
+        Assert.Contains(buildWorkflows, mp => mp.Reference.Repository == "second");
     }
 
     [Fact]
@@ -446,12 +454,13 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "global"); // No repo prefix needed
+        var result = _resolver.GetWorkflowByMountPath(config, "global"); // No repo prefix needed
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("global", result.Workflow.Name);
-        Assert.Equal("global", result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal("global", result.Reference.Workflow);
     }
 
     [Fact]
@@ -478,12 +487,14 @@ public class WorkflowResolverTests : IDisposable
         };
 
         // Act
-        var result = _resolver.GetByPath(config, "myrepo/workflow"); // Direct repo access
+        var result = _resolver.GetWorkflowByMountPath(config, "workflow"); // Mount path access
 
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("workflow", result.Workflow.Name);
-        Assert.Equal("myrepo/workflow", result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal("myrepo", result.Reference.Repository);
+        Assert.Equal("workflow", result.Reference.Workflow);
     }
 
     // Helper methods

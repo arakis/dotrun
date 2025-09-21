@@ -71,31 +71,34 @@ public class WorkflowResolverIntegrationTest : IDisposable
             }
         };
         
-        // Test various resolution patterns
-        // When searching for "test", it finds it first in main/local/dev
-        AssertWorkflowResolution(config, "test", "main/local/dev/test");
-        AssertWorkflowResolution(config, "main/local/dev/test", "main/local/dev/test");
-        // "compile" is found first in main/local/ci/build
-        AssertWorkflowResolution(config, "compile", "main/local/ci/build/compile");
-        // "root" is found in root namespace (empty repo name)
-        AssertWorkflowResolution(config, "root", "root");
+        // Test various resolution patterns using mount paths
+        // When searching for "test", it finds it in dev subdirectory
+        AssertWorkflowResolution(config, "dev/test", "main", "dev/test");
+        // "compile" is in ci/build subdirectory
+        AssertWorkflowResolution(config, "ci/build/compile", "main", "ci/build/compile");
+        // "root" is at root of mount
+        AssertWorkflowResolution(config, "root", "", "root");
         
         // List all workflows
-        var allWorkflows = _resolver.ListWorkflows(config);
-        foreach (var workflow in allWorkflows)
+        var allMountPaths = _resolver.ListWorkflowMountPaths(config);
+        foreach (var (mountPath, reference) in allMountPaths)
         {
-            _output.WriteLine($"Found workflow: {workflow}");
+            _output.WriteLine($"Found workflow at mount path '{mountPath}': {reference}");
         }
     }
     
-    private void AssertWorkflowResolution(DotRunConfigV2 config, string searchPath, string expectedQualifiedPath)
+    private void AssertWorkflowResolution(DotRunConfigV2 config, string mountPath, string expectedRepo, string expectedWorkflowPath)
     {
-        var result = _resolver.GetByPath(config, searchPath);
+        var result = _resolver.GetWorkflowByMountPath(config, mountPath);
         
         Assert.NotNull(result.Workflow);
-        Assert.Equal(expectedQualifiedPath, result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal(expectedRepo, result.Reference.Repository);
         
-        _output.WriteLine($"✓ '{searchPath}' resolved to '{result.QualifiedPath}'");
+        var workflowName = mountPath.Contains("/") ? mountPath.Substring(mountPath.LastIndexOf('/') + 1) : mountPath;
+        Assert.Equal(workflowName, result.Reference.Workflow);
+        
+        _output.WriteLine($"✓ Mount path '{mountPath}' resolved to reference: {result.Reference}");
     }
     
     private void CreateWorkflow(string directory, string filename)

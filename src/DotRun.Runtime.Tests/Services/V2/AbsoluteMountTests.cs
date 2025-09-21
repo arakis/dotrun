@@ -59,12 +59,13 @@ public class AbsoluteMountTests : IDisposable
         };
         
         // Act
-        var result = _resolver.GetByPath(config, "tools/deploy");
+        var result = _resolver.GetWorkflowByMountPath(config, "tools/deploy");
         
         // Assert
         Assert.NotNull(result.Workflow);
         Assert.Equal("deploy", result.Workflow.Name);
-        Assert.Equal("tools/deploy", result.QualifiedPath);  // No "local" prefix
+        Assert.NotNull(result.Reference);
+        Assert.Equal("deploy", result.Reference.Workflow);  // No "local" prefix
     }
     
     [Fact]
@@ -95,14 +96,16 @@ public class AbsoluteMountTests : IDisposable
         
         // Act & Assert
         // Absolute mount - no repo prefix
-        var toolsResult = _resolver.GetByPath(config, "tools/shared");
+        var toolsResult = _resolver.GetWorkflowByMountPath(config, "tools/shared");
         Assert.NotNull(toolsResult.Workflow);
-        Assert.Equal("tools/shared", toolsResult.QualifiedPath);
+        Assert.NotNull(toolsResult.Reference);
+        Assert.Equal("shared", toolsResult.Reference.Workflow);
         
-        // Relative mount - includes repo prefix
-        var devResult = _resolver.GetByPath(config, "myrepo/dev/build");
+        // Relative mount - accessing through mount path
+        var devResult = _resolver.GetWorkflowByMountPath(config, "dev/build");
         Assert.NotNull(devResult.Workflow);
-        Assert.Equal("myrepo/dev/build", devResult.QualifiedPath);
+        Assert.NotNull(devResult.Reference);
+        Assert.Equal("build", devResult.Reference.Workflow);
     }
     
     [Fact]
@@ -131,11 +134,12 @@ public class AbsoluteMountTests : IDisposable
         };
         
         // Act
-        var result = _resolver.GetByPath(config, "ci/builds/test");
+        var result = _resolver.GetWorkflowByMountPath(config, "ci/builds/test");
         
         // Assert
         Assert.NotNull(result.Workflow);
-        Assert.Equal("ci/builds/test", result.QualifiedPath);
+        Assert.NotNull(result.Reference);
+        Assert.Equal("test", result.Reference.Workflow);
     }
     
     [Fact]
@@ -165,12 +169,13 @@ public class AbsoluteMountTests : IDisposable
         };
         
         // Act
-        var workflows = _resolver.ListWorkflows(config).ToList();
+        var mountPaths = _resolver.ListWorkflowMountPaths(config);
         
         // Assert
-        Assert.Equal(2, workflows.Count);
-        Assert.Contains("shared/deploy", workflows);      // Absolute mount
-        Assert.Contains("main/local/test", workflows);    // Relative mount
+        Assert.Equal(2, mountPaths.Count);
+        var paths = mountPaths.Select(mp => mp.MountPath).ToList();
+        Assert.Contains("shared/deploy", paths);      // Absolute mount
+        Assert.Contains("local/test", paths);         // Relative mount
     }
     
     [Fact]
@@ -198,11 +203,12 @@ public class AbsoluteMountTests : IDisposable
         };
         
         // Act
-        var result = _resolver.GetByPath(config, "global");
+        var result = _resolver.GetWorkflowByMountPath(config, "global");
         
         // Assert
         Assert.NotNull(result.Workflow);
-        Assert.Equal("global", result.QualifiedPath);  // At root level
+        Assert.NotNull(result.Reference);
+        Assert.Equal("global", result.Reference.Workflow);  // At root level
     }
     
     // Helper methods

@@ -16,242 +16,200 @@ public class WorkflowResolver : IWorkflowResolver
         _logger = logger;
     }
 
-    public Workflow GetByLogicalPath(DotRunConfigV2 config, WorkflowReference reference)
+    /// <inheritdoc />
+    public IList<(string MountPath, WorkflowReference Reference)> ListWorkflowMountPaths(DotRunConfigV2 config)
     {
-        throw new NotImplementedException();
-    }
+        var results = new List<(string MountPath, WorkflowReference Reference)>();
 
-    public (Workflow Workflow, string QualifiedPath) GetByPath(DotRunConfigV2 config, string workflowPath)
-    {
-        _logger.LogDebug("Resolving workflow: {WorkflowPath}", workflowPath);
-
-        if (string.IsNullOrWhiteSpace(workflowPath))
+        foreach (var (mountLogicalPath, mountPhysicalPath) in config.GetAllMountPoints())
         {
-            _logger.LogError("Workflow path is null or empty");
-            return (null, null);
-        }
-
-        // Try direct resolution first (fully qualified path)
-        var directResult = TryDirectResolution(config, workflowPath);
-        if (directResult.Workflow != null)
-        {
-            _logger.LogDebug("Workflow found via direct resolution: {WorkflowPath}", workflowPath);
-            return directResult;
-        }
-
-        // Search all mount points for the workflow
-        var searchResults = SearchAllMountPoints(config, workflowPath);
-        if (searchResults.Any())
-        {
-            if (searchResults.Count > 1)
+            if (!Directory.Exists(mountPhysicalPath))
             {
-                _logger.LogWarning("Multiple workflows found for {WorkflowPath}. Using first match. Found in: {Paths}",
-                    workflowPath, string.Join(", ", searchResults.Select(r => r.LogicalPath)));
-            }
-
-            var result = searchResults.First();
-            _logger.LogDebug("Workflow found at {LogicalPath}: {PhysicalPath}", result.LogicalPath, result.PhysicalPath);
-            return (result.Workflow, result.LogicalPath);
-        }
-
-        _logger.LogError("Workflow not found: {WorkflowPath}", workflowPath);
-        return (null, null);
-    }
-
-    public IEnumerable<string> ListWorkflows(DotRunConfigV2 config)
-    {
-        var workflows = new List<string>();
-
-        foreach (var (logicalPath, physicalPath) in config.GetAllMountPoints())
-        {
-            if (!Directory.Exists(physicalPath))
-            {
-                _logger.LogDebug("Mount point does not exist: {PhysicalPath}", physicalPath);
+                _logger.LogDebug("Mount point does not exist: {PhysicalPath}", mountPhysicalPath);
                 continue;
             }
 
-            // Search for all .yaml files recursively
-            var yamlFiles = Directory.GetFiles(physicalPath, "*.yaml", SearchOption.AllDirectories)
-                .Concat(Directory.GetFiles(physicalPath, "*.yml", SearchOption.AllDirectories));
+            var workflowFiles = GetWorkflowFiles(mountPhysicalPath);
 
-            foreach (var file in yamlFiles)
+            foreach (var workflowFile in workflowFiles)
             {
-                // Check if it's a valid workflow file
-                if (IsWorkflowFile(file))
-                {
-                    var relativePath = Path.GetRelativePath(physicalPath, file);
-                    var workflowName = Path.GetFileNameWithoutExtension(relativePath);
-                    var workflowPath = BuildWorkflowPath(logicalPath, relativePath);
-                    workflows.Add(workflowPath);
-                }
+                var relativePath = Path.GetRelativePath(mountPhysicalPath, workflowFile);
+                var workflowName = Path.GetFileNameWithoutExtension(workflowFile);
+                var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');
+
+                var relativeMountPath = string.IsNullOrEmpty(workflowDir) || workflowDir == "."
+                    ? workflowName
+                    : $"{workflowDir}/{workflowName}";
+
+                var mountPath = string.IsNullOrEmpty(mountLogicalPath)
+                    ? relativeMountPath
+                    : $"{mountLogicalPath}/{relativeMountPath}";
+
+                var reference = BuildWorkflowReferenceFromMount(config, mountLogicalPath, relativePath);
+                if (reference != null) 
+                    results.Add((mountPath, reference));
             }
-        }
-
-        return workflows.Distinct().OrderBy(w => w);
-    }
-
-    public bool ValidateWorkflow(DotRunConfigV2 config, string workflowPath)
-    {
-        var result = GetByPath(config, workflowPath);
-        return result.Workflow != null;
-    }
-
-    public IEnumerable<(string QualifiedPath, Workflow Workflow)> FindWorkflows(DotRunConfigV2 config, string workflowName)
-    {
-        var results = new List<(string QualifiedPath, Workflow Workflow)>();
-        var searchResults = SearchAllMountPoints(config, workflowName);
-
-        foreach (var result in searchResults)
-        {
-            results.Add((result.LogicalPath, result.Workflow));
         }
 
         return results;
     }
 
-    private (Workflow Workflow, string QualifiedPath) TryDirectResolution(DotRunConfigV2 config, string workflowPath)
+    /// <inheritdoc />
+    public IList<WorkflowReference> ListWorkflowReferences(DotRunConfigV2 config)
     {
-        // Parse the workflow path
-        var parts = workflowPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0)
-            return (null, null);
+        var references = new List<WorkflowReference>();
 
-        // Try to match against known mount points
-        foreach (var repo in config.Repositories)
+        foreach (var repository in config.Repositories)
         {
-            foreach (var path in repo.Paths)
+            if (!Directory.Exists(repository.BasePath))
             {
-                var logicalPath = BuildLogicalPath(repo.Name, path.Mount);
-                if (TryMatchPath(logicalPath, workflowPath, out var workflowFile))
-                {
-                    var physicalPath = ResolvePath(repo, path);
-                    var fullPath = Path.Combine(physicalPath, workflowFile);
+                _logger.LogDebug("Repository base path does not exist: {BasePath}", repository.BasePath);
+                continue;
+            }
 
-                    // Try with .yaml and .yml extensions
-                    var workflow = TryLoadWorkflow(fullPath + ".yaml") ?? TryLoadWorkflow(fullPath + ".yml");
-                    if (workflow != null)
-                    {
-                        // Build the fully qualified path
-                        var qualifiedPath = string.IsNullOrEmpty(logicalPath)
-                            ? workflowPath
-                            : workflowPath; // Already qualified
-                        return (workflow, qualifiedPath);
-                    }
-                }
+            var workflowFiles = GetWorkflowFiles(repository.BasePath);
+
+            foreach (var workflowFile in workflowFiles)
+            {
+                var relativePath = Path.GetRelativePath(repository.BasePath, workflowFile);
+                var workflowName = Path.GetFileNameWithoutExtension(workflowFile);
+                var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');
+
+                var reference = new WorkflowReference
+                {
+                    Repository = repository.Name,
+                    Path = string.IsNullOrEmpty(workflowDir) || workflowDir == "." ? null : workflowDir,
+                    Workflow = workflowName
+                };
+
+                references.Add(reference);
             }
         }
 
-        return (null, null);
+        return references.Distinct().ToList();
     }
 
-    private List<(string LogicalPath, string PhysicalPath, Workflow Workflow)> SearchAllMountPoints(
-        DotRunConfigV2 config, string workflowName)
+    /// <inheritdoc />
+    public (Workflow Workflow, WorkflowReference Reference) GetWorkflowByMountPath(DotRunConfigV2 config, string mountPath)
     {
-        var results = new List<(string LogicalPath, string PhysicalPath, Workflow Workflow)>();
-
-        foreach (var (logicalPath, physicalPath) in config.GetAllMountPoints())
+        if (string.IsNullOrWhiteSpace(mountPath))
         {
-            if (!Directory.Exists(physicalPath))
+            _logger.LogError("Mount path is null or empty");
+            return (null, null);
+        }
+
+        foreach (var (mountLogicalPath, mountPhysicalPath) in config.GetAllMountPoints())
+        {
+            if (!Directory.Exists(mountPhysicalPath))
                 continue;
 
-            // Build possible file paths
-            var possiblePaths = BuildPossiblePaths(physicalPath, workflowName);
+            var possiblePaths = new[]
+            {
+                Path.Combine(mountPhysicalPath, mountPath + ".yaml"),
+                Path.Combine(mountPhysicalPath, mountPath + ".yml"),
+                Path.Combine(mountPhysicalPath, mountPath.Replace('/', Path.DirectorySeparatorChar) + ".yaml"),
+                Path.Combine(mountPhysicalPath, mountPath.Replace('/', Path.DirectorySeparatorChar) + ".yml")
+            };
 
             foreach (var possiblePath in possiblePaths)
             {
                 var workflow = TryLoadWorkflow(possiblePath);
                 if (workflow != null)
                 {
-                    // Calculate the relative path from mount point to workflow
-                    var relativePath = Path.GetRelativePath(physicalPath, possiblePath);
-                    var workflowLogicalName = Path.GetFileNameWithoutExtension(relativePath);
-                    var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');
-
-                    // Build the fully qualified logical path
-                    var parts = new List<string>();
-                    if (!string.IsNullOrEmpty(logicalPath))
-                        parts.Add(logicalPath);
-                    if (!string.IsNullOrEmpty(workflowDir) && workflowDir != ".")
-                        parts.Add(workflowDir);
-                    parts.Add(workflowLogicalName);
-
-                    var fullLogicalPath = string.Join("/", parts);
-                    results.Add((fullLogicalPath, possiblePath, workflow));
+                    var relativePath = Path.GetRelativePath(mountPhysicalPath, possiblePath);
+                    var reference = BuildWorkflowReferenceFromMount(config, mountLogicalPath, relativePath);
+                    
+                    if (reference != null)
+                    {
+                        _logger.LogDebug("Found workflow at mount path {MountPath}: {Reference}", mountPath, reference);
+                        return (workflow, reference);
+                    }
                 }
             }
         }
 
-        return results;
+        _logger.LogError("Workflow not found at mount path: {MountPath}", mountPath);
+        return (null, null);
     }
 
-    private List<string> BuildPossiblePaths(string basePath, string workflowName)
+    /// <inheritdoc />
+    public Workflow GetWorkflowByReference(DotRunConfigV2 config, WorkflowReference reference)
     {
-        var paths = new List<string>();
-
-        // Handle nested paths in workflow name (e.g., "subdir/workflow")
-        var workflowPath = workflowName.Replace('/', Path.DirectorySeparatorChar);
-
-        // Direct file in base path
-        paths.Add(Path.Combine(basePath, workflowPath + ".yaml"));
-        paths.Add(Path.Combine(basePath, workflowPath + ".yml"));
-
-        // Search in subdirectories recursively
-        if (!workflowName.Contains('/'))
+        var repository = config.Repositories.FirstOrDefault(r => r.Name == reference.Repository);
+        if (repository == null)
         {
-            // Only search subdirectories if workflow name doesn't already contain a path
-            var yamlFiles = Directory.GetFiles(basePath, workflowName + ".yaml", SearchOption.AllDirectories)
-                .Concat(Directory.GetFiles(basePath, workflowName + ".yml", SearchOption.AllDirectories));
-            paths.AddRange(yamlFiles);
-        }
-
-        return paths;
-    }
-
-    private Workflow TryLoadWorkflow(string filePath)
-    {
-        if (!File.Exists(filePath))
-            return null;
-
-        try
-        {
-            // For now, create a temporary project to hold the workflow
-            // This will be refactored when we fully migrate to the new system
-            var workflowDir = Path.GetDirectoryName(filePath);
-            var tempProject = Project.FromFile("", workflowDir);
-
-            var workflow = Workflow.FromFile(tempProject, filePath);
-            return workflow;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug("Failed to load workflow from {FilePath}: {Error}", filePath, ex.Message);
+            _logger.LogError("Repository not found: {Repository}", reference.Repository);
             return null;
         }
+
+        var pathParts = new List<string> { repository.BasePath };
+        
+        if (!string.IsNullOrEmpty(reference.Path))
+            pathParts.Add(reference.Path);
+        
+        pathParts.Add(reference.Workflow);
+        
+        var basePath = Path.Combine(pathParts.ToArray());
+        
+        var possiblePaths = new[]
+        {
+            basePath + ".yaml",
+            basePath + ".yml"
+        };
+
+        foreach (var possiblePath in possiblePaths)
+        {
+            var workflow = TryLoadWorkflow(possiblePath);
+            if (workflow != null)
+            {
+                _logger.LogDebug("Found workflow by reference {Reference} at {Path}", reference, possiblePath);
+                return workflow;
+            }
+        }
+
+        _logger.LogError("Workflow not found for reference: {Reference}", reference);
+        return null;
     }
 
-    private bool IsWorkflowFile(string filePath)
+    private WorkflowReference BuildWorkflowReferenceFromMount(DotRunConfigV2 config, string mountLogicalPath, string relativePath)
     {
-        try
+        var workflowName = Path.GetFileNameWithoutExtension(relativePath);
+        var workflowDir = Path.GetDirectoryName(relativePath)?.Replace(Path.DirectorySeparatorChar, '/');
+
+        foreach (var repository in config.Repositories)
         {
-            var content = File.ReadAllText(filePath);
-            return content.Contains("kind: workflow", StringComparison.OrdinalIgnoreCase);
+            foreach (var path in repository.Paths)
+            {
+                var logicalPath = BuildLogicalPath(repository.Name, path.Mount);
+                
+                if (logicalPath == mountLogicalPath)
+                {
+                    var fullPath = string.IsNullOrEmpty(path.Path) || path.Path == "."
+                        ? workflowDir
+                        : string.IsNullOrEmpty(workflowDir) || workflowDir == "."
+                            ? path.Path
+                            : $"{path.Path}/{workflowDir}";
+
+                    return new WorkflowReference
+                    {
+                        Repository = repository.Name,
+                        Path = string.IsNullOrEmpty(fullPath) || fullPath == "." ? null : fullPath,
+                        Workflow = workflowName
+                    };
+                }
+            }
         }
-        catch
-        {
-            return false;
-        }
+
+        return null;
     }
 
     private string BuildLogicalPath(string repoName, string mount)
     {
-        // Absolute mount - starts with /
         if (mount?.StartsWith("/") == true)
         {
-            // Return without leading slash for consistency
             return mount.TrimStart('/');
         }
 
-        // Relative mount under repository
         var parts = new List<string>();
         if (!string.IsNullOrEmpty(repoName))
             parts.Add(repoName);
@@ -261,56 +219,47 @@ public class WorkflowResolver : IWorkflowResolver
         return parts.Count > 0 ? string.Join("/", parts) : "";
     }
 
-    private string BuildWorkflowPath(string logicalPath, string workflowFile)
+    private IEnumerable<string> GetWorkflowFiles(string basePath)
     {
-        var workflowName = Path.GetFileNameWithoutExtension(workflowFile);
-        var workflowDir = Path.GetDirectoryName(workflowFile);
+        if (!Directory.Exists(basePath))
+            return Enumerable.Empty<string>();
 
-        var parts = new List<string>();
-        if (!string.IsNullOrEmpty(logicalPath))
-            parts.Add(logicalPath);
-        if (!string.IsNullOrEmpty(workflowDir) && workflowDir != ".")
-            parts.Add(workflowDir.Replace(Path.DirectorySeparatorChar, '/'));
-        parts.Add(workflowName);
+        var yamlFiles = Directory.GetFiles(basePath, "*.yaml", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(basePath, "*.yml", SearchOption.AllDirectories));
 
-        return string.Join("/", parts);
+        return yamlFiles.Where(IsWorkflowFile);
     }
 
-    private bool TryMatchPath(string logicalPath, string workflowPath, out string workflowFile)
+    private bool IsWorkflowFile(string filePath)
     {
-        workflowFile = null;
-
-        if (string.IsNullOrEmpty(logicalPath))
+        try
         {
-            // Root mount - workflow path is the file
-            workflowFile = workflowPath;
-            return true;
+            var content = File.ReadAllText(filePath);
+            return content.Contains("kind: workflow", StringComparison.OrdinalIgnoreCase);
         }
-
-        if (workflowPath.StartsWith(logicalPath + "/"))
+        catch (Exception ex)
         {
-            // Path matches - extract workflow file
-            workflowFile = workflowPath.Substring(logicalPath.Length + 1);
-            return true;
-        }
-
-        return false;
-    }
-
-    private string ResolvePath(Repository repo, RepositoryPath path)
-    {
-        if (IsAbsolutePath(path.Path))
-        {
-            return DirectoryHelper.GetAbsoluteLocalPath(path.Path);
-        }
-        else
-        {
-            return Path.Combine(repo.BasePath, path.Path);
+            _logger.LogDebug("Failed to check if file is workflow {FilePath}: {Error}", filePath, ex.Message);
+            return false;
         }
     }
 
-    private bool IsAbsolutePath(string path)
+    private Workflow TryLoadWorkflow(string filePath)
     {
-        return path.StartsWith("/") || path.StartsWith("~");
+        if (!File.Exists(filePath))
+            return null;
+
+        try
+        {
+            var workflowDir = Path.GetDirectoryName(filePath);
+            var tempProject = Project.FromFile("", workflowDir);
+            var workflow = Workflow.FromFile(tempProject, filePath);
+            return workflow;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug("Failed to load workflow from {FilePath}: {Error}", filePath, ex.Message);
+            return null;
+        }
     }
 }
